@@ -1,0 +1,8 @@
+{
+  "appId": "com.armducky.p3review",
+  "appName": "ติวสอบ ป.3",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}
