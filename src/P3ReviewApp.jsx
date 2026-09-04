@@ -42,6 +42,10 @@ const pickN = (pool, n, seen) =>
     .sort((a, b) => (seen[a.qid] || 0) - (seen[b.qid] || 0))
     .slice(0, Math.min(n, pool.length));
 
+/* filter items by exam term: "all" | "1" | "2" (defaults treat missing term as 1) */
+const byExam = (items, exam) =>
+  (!exam || exam === "all") ? items : items.filter((x) => String(x.term || 1) === String(exam));
+
 /* ================= persistent storage ================= */
 const STORE_KEY = "p3review-v2";
 async function loadStore() {
@@ -80,6 +84,7 @@ const UI = {
     accuracy: "ความแม่น", attempts: "ทำไป", correctN: "ถูก", notYet: "ยังไม่ได้ทำ",
     overall: "ภาพรวมทั้งหมด", weakest: "วิชาที่ควรทบทวนเพิ่ม", strong: "ทำได้ดีมาก",
     listen: "ฟังเสียงอ่าน", nightMode: "โหมดกลางคืน", dayMode: "โหมดกลางวัน",
+    examAll: "ทั้งหมด", exam1: "สอบ 1", exam2: "สอบ 2", examLabel: "เลือกชุดสอบ",
     chooseMode: "เลือกรูปแบบฝึก", timeUp: "หมดเวลา!",
     seenProgress: "เคยฝึกแล้ว", noWrong: "ยังไม่มีข้อที่ตอบผิดค้างอยู่ 🎉",
     resetProgress: "ล้างประวัติการฝึก", resetConfirm: "แน่ใจนะ? ประวัติ+ดาวจะถูกล้างทั้งหมด",
@@ -108,6 +113,7 @@ const UI = {
     accuracy: "Accuracy", attempts: "Done", correctN: "Correct", notYet: "Not started",
     overall: "Overall", weakest: "Needs more practice", strong: "Doing great",
     listen: "Listen", nightMode: "Night mode", dayMode: "Day mode",
+    examAll: "All", exam1: "Exam 1", exam2: "Exam 2", examLabel: "Choose exam set",
     chooseMode: "Choose a practice mode", timeUp: "Time's up!",
     seenProgress: "Practiced", noWrong: "No wrong answers left to review 🎉",
     resetProgress: "Reset progress", resetConfirm: "Sure? All history + stars will be cleared",
@@ -2015,9 +2021,350 @@ const LESSONS_T1B = {
   ],
 };
 
-/* merge Term-1 second-half lessons */
+/* ============ EXAM 2 — NEW TOPIC LESSONS (LESSONS_T2) ============ */
+const LESSONS_T2 = {
+  thai: [
+    {
+      h: { th: "การเขียนจดหมายลาครู", en: "Writing a leave letter to the teacher" },
+      p: [
+        { th: "จดหมายลาครูใช้เมื่อหยุดเรียน (ป่วยหรือมีธุระ) มีรูปแบบและส่วนประกอบที่ต้องเขียนให้ครบ", en: "A leave letter is written when absent (sick or busy). It has a set format with required parts." },
+      ],
+      k: [
+        { th: "ส่วนประกอบ: วันที่ → คำขึ้นต้น (เรียนคุณครู…) → เนื้อความ (บอกเหตุผลลา + วันที่ลา) → คำลงท้าย (ด้วยความเคารพ) → ลงชื่อ", en: "Parts: date → greeting → body (reason + dates) → closing → signature" },
+        { th: "ต้องบอกให้ชัด: ลาป่วยหรือลากิจ, ลาวันไหนถึงวันไหน", en: "State clearly: sick leave or personal leave, and the dates" },
+        { th: "ใช้ภาษาสุภาพ เขียนสะอาด อ่านง่าย", en: "Use polite language, write neatly" },
+      ],
+      ex: [
+        [{ th: "จดหมายลาเพราะไม่สบาย เรียกว่า", en: "A letter for being sick is called…" }, "ลาป่วย"],
+        [{ th: "คำลงท้ายจดหมายถึงครูที่สุภาพ", en: "A polite closing to a teacher" }, "ด้วยความเคารพ"],
+      ],
+      mem: { th: "จำลำดับ: วันที่-คำขึ้นต้น-เนื้อความ-คำลงท้าย-ลงชื่อ", en: "Order: date-greeting-body-closing-signature." },
+      tip: { th: "อย่าลืมบอก 'เหตุผลที่ลา' และ 'วันที่ลา' ให้ครบ ครูจะได้รู้ชัดเจน", en: "Always include the reason and the dates of absence." },
+      term: 2,
+    },
+  ],
+  math: [
+    {
+      h: { th: "การวัดความยาว (Length)", en: "Measuring length" },
+      p: [
+        { th: "เราวัดความยาวด้วยไม้บรรทัด/สายวัด หน่วยที่ใช้บ่อยคือ เซนติเมตร (ซม.) และเมตร (ม.)", en: "We measure length with a ruler/tape. Common units are centimetres (cm) and metres (m)." },
+      ],
+      k: [
+        { th: "1 เมตร = 100 เซนติเมตร | 1 เซนติเมตร = 10 มิลลิเมตร", en: "1 m = 100 cm | 1 cm = 10 mm" },
+        { th: "ของสั้น (ดินสอ) วัดเป็น ซม. | ของยาว (ห้อง สนาม) วัดเป็น ม.", en: "Short things → cm; long things → m" },
+        { th: "บวก-ลบความยาวได้ ถ้าหน่วยเดียวกัน เช่น 120 ซม. + 80 ซม. = 200 ซม. = 2 ม.", en: "Add/subtract lengths with the same unit" },
+      ],
+      ex: [
+        ["2 เมตร = กี่เซนติเมตร", "200 ซม."],
+        ["150 ซม. = กี่เมตรกี่เซนติเมตร", "1 ม. 50 ซม."],
+      ],
+      mem: { th: "จำ '1 เมตร = 100 ซม.' เหมือน 1 บาท = 100 สตางค์", en: "1 m = 100 cm, like 1 baht = 100 satang." },
+      tip: { th: "เทียบหน่วยให้เหมือนกันก่อนบวก-ลบเสมอ", en: "Convert to the same unit before adding or subtracting." },
+      term: 2,
+    },
+    {
+      h: { th: "รูปเรขาคณิต & แกนสมมาตร", en: "Geometric shapes & symmetry" },
+      p: [
+        { th: "รูปเรขาคณิตมีด้านและมุม เรานับได้ และบางรูปมีแกนสมมาตร (พับแล้วซ้อนทับกันพอดี)", en: "Geometric shapes have sides and corners; some have a line of symmetry (folds to match exactly)." },
+      ],
+      k: [
+        { th: "สามเหลี่ยม: 3 ด้าน 3 มุม | สี่เหลี่ยม: 4 ด้าน 4 มุม | ห้าเหลี่ยม: 5 ด้าน", en: "Triangle: 3 sides | Square/rectangle: 4 sides | Pentagon: 5 sides" },
+        { th: "วงกลมไม่มีมุมและไม่มีด้าน", en: "A circle has no sides or corners" },
+        { th: "แกนสมมาตร = เส้นที่พับรูปแล้วสองข้างซ้อนทับกันพอดี (เช่น หัวใจ ผีเสื้อ สี่เหลี่ยมจัตุรัส)", en: "Line of symmetry = fold and both halves match (heart, butterfly, square)" },
+      ],
+      ex: [
+        [{ th: "สามเหลี่ยมมีกี่ด้าน", en: "How many sides has a triangle?" }, "3 ด้าน"],
+        [{ th: "รูปที่พับแล้วซ้อนทับกันพอดีมี", en: "A shape that folds to match has a…" }, "แกนสมมาตร"],
+      ],
+      mem: { th: "นับชื่อรูปจากจำนวนด้าน: สาม=3, สี่=4, ห้า=5 เหลี่ยม", en: "Name by side count: tri=3, quad=4, penta=5." },
+      tip: { th: "ทดสอบแกนสมมาตรด้วยการ 'พับกระดาษ' ถ้าซ้อนทับพอดี = มีแกนสมมาตร", en: "Test symmetry by folding paper; if halves match, it's symmetric." },
+      term: 2,
+    },
+    {
+      h: { th: "เศษส่วนเบื้องต้น (Fractions)", en: "Basic fractions" },
+      p: [
+        { th: "เศษส่วนคือส่วนหนึ่งของทั้งหมดที่แบ่งเท่า ๆ กัน เขียนเป็น เศษ/ส่วน", en: "A fraction is an equal part of a whole, written as numerator/denominator." },
+      ],
+      k: [
+        { th: "ตัวล่าง (ส่วน) = แบ่งเป็นกี่ส่วนเท่า ๆ กัน | ตัวบน (เศษ) = เอามากี่ส่วน", en: "Denominator (bottom) = number of equal parts | Numerator (top) = parts taken" },
+        { th: "1/2 = ครึ่งหนึ่ง | 1/4 = หนึ่งในสี่ | 3/4 = สามในสี่", en: "1/2 = half | 1/4 = quarter | 3/4 = three quarters" },
+        { th: "แบ่งพิซซา 4 ชิ้นเท่ากัน กิน 1 ชิ้น = กินไป 1/4", en: "Pizza cut into 4, eat 1 → ate 1/4" },
+      ],
+      ex: [
+        [{ th: "ครึ่งหนึ่งเขียนเป็นเศษส่วน", en: "Write 'half' as a fraction" }, "1/2"],
+        [{ th: "แบ่งเค้ก 4 ส่วน กิน 3 ส่วน = ", en: "Cake in 4, eat 3 =" }, "3/4"],
+      ],
+      mem: { th: "ตัวล่างบอก 'แบ่งกี่ชิ้น' ตัวบนบอก 'เอากี่ชิ้น'", en: "Bottom = how many pieces; top = how many taken." },
+      tip: { th: "เศษส่วนต้องแบ่ง 'เท่า ๆ กัน' เท่านั้น ถ้าแบ่งไม่เท่ากันใช้เศษส่วนไม่ได้", en: "Parts must be equal to be a fraction." },
+      term: 2,
+    },
+  ],
+  science: [
+    {
+      h: { th: "แรงและการเคลื่อนที่ (Forces & motion)", en: "Forces & motion" },
+      p: [
+        { th: "แรงคือการดึงหรือดันที่ทำให้วัตถุเคลื่อนที่ หยุด หรือเปลี่ยนทิศทาง", en: "A force is a push or a pull that makes things move, stop, or change direction." },
+      ],
+      k: [
+        { th: "แรงทำให้วัตถุ: เริ่มเคลื่อนที่ / หยุด / เร็วขึ้น-ช้าลง / เปลี่ยนทิศ / เปลี่ยนรูปร่าง", en: "Forces make objects start, stop, speed up/slow down, turn, or change shape" },
+        { th: "แรงสัมผัส = ต้องแตะวัตถุ (ผลัก ดึง เสียดทาน) | แรงไม่สัมผัส = ไม่ต้องแตะ (แรงแม่เหล็ก แรงโน้มถ่วง)", en: "Contact force = must touch (push, pull, friction) | Non-contact = no touch (magnetism, gravity)" },
+        { th: "แรงโน้มถ่วงดึงของตกลงสู่พื้นเสมอ", en: "Gravity pulls things down to the ground" },
+      ],
+      ex: [
+        [{ th: "การเตะลูกบอลเป็นแรงชนิดใด", en: "Kicking a ball is which force?" }, "แรงสัมผัส"],
+        [{ th: "แรงที่ดึงของตกลงพื้นคือ", en: "Force pulling things down" }, "แรงโน้มถ่วง (ไม่สัมผัส)"],
+      ],
+      mem: { th: "แรง = ผลักหรือดึง | ต้องแตะ = สัมผัส, ไม่ต้องแตะ = ไม่สัมผัส", en: "Force = push/pull; touch = contact, no touch = non-contact." },
+      tip: { th: "แรงแม่เหล็กและแรงโน้มถ่วงเป็น 'แรงไม่สัมผัส' เพราะออกแรงได้โดยไม่ต้องแตะ", en: "Magnetism and gravity are non-contact forces." },
+      term: 2,
+    },
+    {
+      h: { th: "แรงแม่เหล็ก (Magnets)", en: "Magnets" },
+      p: [
+        { th: "แม่เหล็กมีแรงดึงดูดวัตถุบางชนิด และมี 2 ขั้วคือขั้วเหนือ (N) กับขั้วใต้ (S)", en: "Magnets attract some materials and have two poles: North (N) and South (S)." },
+      ],
+      k: [
+        { th: "แม่เหล็กดูดของที่ทำจากเหล็ก/นิกเกิล ไม่ดูดไม้ พลาสติก แก้ว กระดาษ", en: "Magnets attract iron/nickel; not wood, plastic, glass, paper" },
+        { th: "ขั้วเหมือนกันผลักกัน (N-N, S-S) | ขั้วต่างกันดูดกัน (N-S)", en: "Same poles repel (N-N); opposite poles attract (N-S)" },
+        { th: "แรงแม่เหล็กเป็นแรงไม่สัมผัส (ออกแรงได้โดยไม่ต้องแตะ)", en: "Magnetism is a non-contact force" },
+      ],
+      ex: [
+        [{ th: "แม่เหล็กดูดของที่ทำจาก", en: "Magnets attract things made of…" }, "เหล็ก (โลหะบางชนิด)"],
+        [{ th: "ขั้ว N เจอขั้ว N จะ", en: "N pole meets N pole →" }, "ผลักกัน"],
+      ],
+      mem: { th: "จำ 'เหมือนผลัก ต่างดูด' (เหมือนกันผลัก ต่างกันดูด)", en: "'Same repel, opposite attract.'" },
+      tip: { th: "ทดสอบว่าเป็นแม่เหล็กไหม ลองเอาไปใกล้ตะปูเหล็ก ถ้าดูดติด = เป็นแม่เหล็ก", en: "Test a magnet with an iron nail — if it sticks, it's magnetic." },
+      term: 2,
+    },
+    {
+      h: { th: "วัสดุรอบตัว (Materials)", en: "Materials around us" },
+      p: [
+        { th: "สิ่งของทำจากวัสดุต่างกัน แต่ละวัสดุมีสมบัติต่างกัน จึงเลือกใช้ให้เหมาะกับงาน", en: "Objects are made of different materials with different properties, chosen to suit the job." },
+      ],
+      k: [
+        { th: "วัสดุที่พบบ่อย: ไม้ โลหะ พลาสติก แก้ว ผ้า กระดาษ ยาง", en: "Common materials: wood, metal, plastic, glass, cloth, paper, rubber" },
+        { th: "สมบัติ: แข็ง-นิ่ม, โปร่งใส-ทึบ, ยืดหยุ่น, กันน้ำ", en: "Properties: hard/soft, clear/opaque, stretchy, waterproof" },
+        { th: "เลือกวัสดุตามงาน: ร่มใช้ผ้ากันน้ำ, หน้าต่างใช้แก้วใส", en: "Choose by use: umbrella=waterproof cloth, window=clear glass" },
+      ],
+      ex: [
+        [{ th: "หน้าต่างทำจากแก้วเพราะ", en: "Windows use glass because it is…" }, "โปร่งใส มองผ่านได้"],
+        [{ th: "ยางลบทำจากวัสดุที่มีสมบัติ", en: "An eraser is made of…" }, "ยาง (ยืดหยุ่น)"],
+      ],
+      mem: { th: "จับคู่วัสดุกับงาน: กันน้ำ→ผ้าร่ม, ใส→แก้ว, แข็ง→โลหะ", en: "Match material to job." },
+      tip: null,
+      term: 2,
+    },
+  ],
+  social: [
+    {
+      h: { th: "ภาษี (Taxes)", en: "Taxes" },
+      p: [
+        { th: "ภาษีคือเงินที่ประชาชนจ่ายให้รัฐ เพื่อนำไปพัฒนาประเทศและบริการส่วนรวม", en: "Tax is money people pay to the government to develop the country and public services." },
+      ],
+      k: [
+        { th: "ภาษีนำไปสร้าง: ถนน โรงเรียน โรงพยาบาล ไฟฟ้า ความปลอดภัย", en: "Taxes fund roads, schools, hospitals, safety" },
+        { th: "ตัวอย่างภาษีที่พบ: ภาษีมูลค่าเพิ่ม (VAT ตอนซื้อของ), ภาษีเงินได้", en: "Examples: VAT (when buying), income tax" },
+        { th: "การเสียภาษีเป็นหน้าที่ของพลเมืองที่ดี", en: "Paying tax is a good citizen's duty" },
+      ],
+      ex: [
+        [{ th: "ภาษีที่จ่ายให้รัฐนำไปทำอะไร", en: "What are taxes used for?" }, "สร้างถนน โรงเรียน โรงพยาบาล ฯลฯ"],
+        [{ th: "ตอนซื้อของเราจ่ายภาษีชนิดใด", en: "Which tax when buying goods?" }, "ภาษีมูลค่าเพิ่ม (VAT)"],
+      ],
+      mem: { th: "ภาษี = เงินส่วนรวม เอาไปทำของใช้ร่วมกัน (ถนน โรงเรียน โรงพยาบาล)", en: "Tax = shared money for shared things." },
+      tip: null,
+      term: 2,
+    },
+  ],
+  history: [
+    {
+      h: { th: "การตั้งถิ่นฐานและการพัฒนาชุมชน", en: "Settlement & community development" },
+      p: [
+        { th: "คนมักตั้งถิ่นฐานในที่ที่เหมาะสม แล้วชุมชนค่อย ๆ พัฒนาขึ้นตามกาลเวลา", en: "People settle where conditions are good; communities then develop over time." },
+      ],
+      k: [
+        { th: "คนเลือกตั้งบ้านใกล้ 'แหล่งน้ำ' (แม่น้ำ) เพราะใช้ดื่ม เพาะปลูก และเดินทาง", en: "People settle near water for drinking, farming, and travel" },
+        { th: "ปัจจัยตั้งถิ่นฐาน: น้ำ ดินอุดม อากาศดี ปลอดภัย", en: "Settlement factors: water, fertile soil, good climate, safety" },
+        { th: "ชุมชนพัฒนา: จากหมู่บ้านเล็ก → มีตลาด โรงเรียน ถนน → เป็นเมือง", en: "Communities grow: village → market/school/roads → town" },
+        { th: "วัฒนธรรมแต่ละชุมชนต่างกันตามสภาพแวดล้อมและความเชื่อ", en: "Each community's culture differs by environment and belief" },
+      ],
+      ex: [
+        [{ th: "คนโบราณมักตั้งบ้านใกล้อะไร", en: "People long ago settled near…" }, "แหล่งน้ำ/แม่น้ำ"],
+        [{ th: "เพราะเหตุใดจึงตั้งถิ่นฐานริมน้ำ", en: "Why settle by water?" }, "ใช้ดื่ม เพาะปลูก เดินทาง"],
+      ],
+      mem: { th: "จำ 'อยู่ใกล้น้ำ = อยู่รอด' คนโบราณจึงตั้งบ้านริมแม่น้ำ", en: "'Near water = survival' — so people settled by rivers." },
+      tip: null,
+      term: 2,
+    },
+  ],
+  arts: [
+    {
+      h: { th: "การงาน: แต่งกายเหมาะสม & ซ่อมเสื้อผ้า", en: "Grooming & mending clothes" },
+      p: [
+        { th: "การแต่งกายให้เหมาะกับโอกาสและดูแลเสื้อผ้าเป็นทักษะชีวิตที่ดี รวมถึงซ่อมแซมเบื้องต้น", en: "Dressing suitably and caring for clothes are life skills, including basic mending." },
+      ],
+      k: [
+        { th: "แต่งกายให้เหมาะกับโอกาส: ชุดนักเรียนไปเรียน ชุดสุภาพไปงาน ชุดกีฬาเล่นกีฬา", en: "Dress for the occasion: uniform for school, neat clothes for events" },
+        { th: "ดูแลเสื้อผ้า: ซัก ตาก พับ/แขวนให้เรียบร้อย", en: "Care: wash, dry, fold/hang neatly" },
+        { th: "ซ่อมแซมง่าย ๆ: เย็บกระดุมที่หลุด เย็บตะเข็บที่ขาดด้วยเข็มกับด้าย", en: "Simple mending: sew on a button, stitch a small tear" },
+      ],
+      ex: [
+        [{ th: "ไปโรงเรียนควรแต่งชุดใด", en: "What to wear to school?" }, "ชุดนักเรียน"],
+        [{ th: "กระดุมหลุดควรทำอย่างไร", en: "Button fell off — do what?" }, "เย็บติดด้วยเข็มและด้าย"],
+      ],
+      mem: { th: "แต่งกาย 'ถูกกาลเทศะ' = เหมาะกับสถานที่และโอกาส", en: "Dress to fit the place and occasion." },
+      tip: null,
+      term: 2,
+    },
+    {
+      h: { th: "นาฏศิลป์: ดนตรีท้องถิ่น 4 ภาค", en: "Local Thai music (4 regions)" },
+      p: [
+        { th: "ดนตรีพื้นบ้านของไทยต่างกันตามภาค สะท้อนวัฒนธรรมของแต่ละท้องถิ่น และใช้ในวันสำคัญ/งานรื่นเริง", en: "Thai folk music differs by region, reflecting local culture, and is used at festivals." },
+      ],
+      k: [
+        { th: "ภาคเหนือ: ดนตรีล้านนา (สะล้อ ซอ ซึง) จังหวะช้านุ่มนวล", en: "North: Lanna music (salo, so, sueng)" },
+        { th: "ภาคอีสาน: หมอลำ (แคน โปงลาง) สนุกสนาน", en: "Northeast: mor lam (khaen, ponglang)" },
+        { th: "ภาคกลาง: เพลงพื้นบ้าน (กลองยาว รำวง)", en: "Central: folk songs (klong yao, ramwong)" },
+        { th: "ภาคใต้: หนังตะลุง โนรา (กลอง โหม่ง)", en: "South: nang talung, nora" },
+      ],
+      ex: [
+        [{ th: "แคนและโปงลางเป็นดนตรีภาคใด", en: "Khaen & ponglang are from which region?" }, "ภาคอีสาน"],
+        [{ th: "หนังตะลุง โนรา เป็นของภาคใด", en: "Nang talung, nora belong to…" }, "ภาคใต้"],
+      ],
+      mem: { th: "จับคู่ภาค-เครื่องดนตรี: เหนือ=สะล้อซึง, อีสาน=แคน, ใต้=โนรา", en: "Pair region-instrument: North=sueng, NE=khaen, South=nora." },
+      tip: null,
+      term: 2,
+    },
+    {
+      h: { th: "ศิลปะ: ถ่ายทอดความรู้สึกด้วยทัศนธาตุ", en: "Art: expressing feelings with visual elements" },
+      p: [
+        { th: "หน่วยที่ 3 'คิดอย่างไรว่าดังนั้น' ให้วาดภาพถ่ายทอดความรู้สึกจากเหตุการณ์จริง โดยใช้ เส้น สี รูปร่าง รูปทรง พื้นผิว", en: "Unit 3 asks us to draw real feelings using line, colour, shape, form, and texture." },
+      ],
+      k: [
+        { th: "เส้น: เส้นหยัก/แหลม = ตื่นเต้น รุนแรง | เส้นโค้งนุ่ม = สงบ อ่อนโยน", en: "Lines: jagged = exciting; soft curves = calm" },
+        { th: "สี: สีสดใส = สนุก ร่าเริง | สีมืดทึม = เศร้า เหงา", en: "Colour: bright = happy; dark = sad" },
+        { th: "ประเมินงานตนเอง: บอกสิ่งที่ชื่นชม และสิ่งที่ควรปรับปรุงได้", en: "Self-review: say what you like and what to improve" },
+      ],
+      ex: [
+        [{ th: "อยากสื่อความ 'สนุกสดใส' ควรใช้สีแบบใด", en: "To show 'joy', use which colours?" }, "สีสดใส (วรรณะอุ่น)"],
+        [{ th: "เส้นโค้งนุ่มนวลสื่อความรู้สึก", en: "Soft curved lines feel…" }, "สงบ อ่อนโยน"],
+      ],
+      mem: { th: "อารมณ์ → เลือกเส้นและสีให้ตรง: สดใส=สุข, มืด=เศร้า", en: "Match line & colour to the mood." },
+      tip: null,
+      term: 2,
+    },
+  ],
+  english: [
+    {
+      h: { th: "Questions with some / any", en: "Questions with some / any" },
+      p: [
+        { th: "ใช้ some กับประโยคบอกเล่า และ any กับประโยคคำถามและปฏิเสธ (มักใช้กับอาหาร/ของนับไม่ได้)", en: "Use 'some' in positive sentences, 'any' in questions and negatives (often with food/uncountables)." },
+      ],
+      k: [
+        { th: "บอกเล่า: There is some milk. / I have some apples.", en: "Positive: There is some milk." },
+        { th: "คำถาม: Is there any juice? / Have you got any pens?", en: "Question: Is there any juice?" },
+        { th: "ปฏิเสธ: There isn't any bread.", en: "Negative: There isn't any bread." },
+      ],
+      ex: [
+        ["Is there ___ cheese?", "any"],
+        ["There is ___ water in the glass.", "some"],
+      ],
+      mem: { th: "some = ประโยคบอก | any = ถาม/ปฏิเสธ", en: "some = positive; any = question/negative." },
+      tip: { th: "ในคำถามและปฏิเสธ ใช้ any เกือบเสมอ", en: "In questions and negatives, use 'any'." },
+      term: 2,
+    },
+    {
+      h: { th: "be going to (แผนอนาคต)", en: "be going to (future plans)" },
+      p: [
+        { th: "ใช้ 'am/is/are + going to + กริยา' เพื่อบอกแผนหรือสิ่งที่ตั้งใจจะทำในอนาคต", en: "Use 'am/is/are going to + verb' for plans or intentions in the future." },
+      ],
+      k: [
+        { th: "I am going to swim. / She is going to read. / They are going to play.", en: "I am going to swim. / She is going to read." },
+        { th: "am (I) / is (he,she,it) / are (you,we,they) — เหมือน present continuous", en: "am/is/are chosen by the subject" },
+        { th: "คำถาม: What are you going to do? — I'm going to study.", en: "Question: What are you going to do?" },
+      ],
+      ex: [
+        ["She ___ going to sing.", "is"],
+        ["We ___ going to eat lunch.", "are"],
+      ],
+      mem: { th: "สูตร: ประธาน + (am/is/are) + going to + กริยาช่อง 1", en: "subject + (am/is/are) + going to + base verb." },
+      tip: { th: "ตามหลัง going to ใช้กริยาช่องที่ 1 (รูปธรรมดา) เสมอ", en: "After 'going to' use the base verb." },
+      term: 2,
+    },
+  ],
+  time: [
+    {
+      h: { th: "Past Continuous & Places around town", en: "Past Continuous & Places around town" },
+      p: [
+        { th: "Past continuous บอกสิ่งที่ 'กำลังทำอยู่ในอดีต' ใช้ was/were + กริยา-ing และเพิ่มคำศัพท์สถานที่ในเมือง", en: "Past continuous tells what was happening in the past (was/were + verb-ing), plus town-place words." },
+      ],
+      k: [
+        { th: "was (I,he,she,it) / were (you,we,they) + กริยา-ing", en: "was (I/he/she/it) / were (you/we/they) + verb-ing" },
+        { th: "I was reading. / They were playing. (กำลังทำอยู่เมื่อวาน/ตอนนั้น)", en: "I was reading. / They were playing." },
+        { th: "Places: hospital, market, bank, post office, park, school, temple, shop", en: "Places: hospital, market, bank, post office, park, temple, shop" },
+      ],
+      ex: [
+        ["I ___ eating at 7 pm. (was/were)", "was"],
+        ["They ___ playing football.", "were"],
+        [{ th: "สถานที่ส่งจดหมายคือ", en: "Place to post letters" }, "post office"],
+      ],
+      mem: { th: "was = เอกพจน์/I | were = พหูพจน์/you — ตามด้วยกริยา-ing", en: "was = singular/I; were = plural/you; + verb-ing." },
+      tip: { th: "Past continuous เหมือน present continuous แต่เปลี่ยน is/are/am เป็น was/were", en: "Like present continuous but with was/were." },
+      term: 2,
+    },
+  ],
+  health: [
+    {
+      h: { th: "โรคที่ควรรู้จักและการป้องกัน", en: "Common illnesses & prevention" },
+      p: [
+        { th: "โรคที่พบบ่อยในเด็กป้องกันได้ด้วยสุขนิสัยที่ดี ถ้าป่วยควรพักและบอกผู้ใหญ่", en: "Common childhood illnesses can be prevented with good hygiene; if sick, rest and tell an adult." },
+      ],
+      k: [
+        { th: "ไข้หวัด: ป้องกันโดยล้างมือ ใส่หน้ากาก พักผ่อน ไม่คลุกคลีคนป่วย", en: "Cold/flu: wash hands, wear a mask, rest" },
+        { th: "ท้องเสีย: เกิดจากอาหาร/น้ำไม่สะอาด ป้องกันโดยกินสุก ดื่มน้ำสะอาด ล้างมือก่อนกิน", en: "Diarrhoea: from unclean food/water; eat cooked food, wash hands" },
+        { th: "ฟันผุ: แปรงฟันวันละ 2 ครั้ง ลดขนม-น้ำหวาน", en: "Tooth decay: brush twice daily, less sweets" },
+        { th: "สุขนิสัยดี: กินครบ 5 หมู่ ออกกำลังกาย นอนพอ", en: "Good habits: eat 5 groups, exercise, sleep" },
+      ],
+      ex: [
+        [{ th: "ป้องกันไข้หวัดทำได้โดย", en: "Prevent a cold by…" }, "ล้างมือ ใส่หน้ากาก พักผ่อน"],
+        [{ th: "ท้องเสียมักเกิดจาก", en: "Diarrhoea often comes from…" }, "อาหาร/น้ำไม่สะอาด"],
+      ],
+      mem: { th: "ล้างมือบ่อย ๆ = กันโรคได้หลายอย่าง", en: "Frequent hand-washing prevents many illnesses." },
+      tip: { th: "ถ้ารู้สึกไม่สบาย ให้บอกผู้ใหญ่และพักผ่อน อย่าฝืน", en: "If unwell, tell an adult and rest." },
+      term: 2,
+    },
+    {
+      h: { th: "ความปลอดภัยของร่างกาย (Body safety)", en: "Body safety" },
+      p: [
+        { th: "ร่างกายของเราเป็นของเรา เรามีสิทธิ์ปกป้อง และต้องรู้จักขอความช่วยเหลือเมื่อรู้สึกไม่ปลอดภัย เรื่องนี้สำคัญมากและไม่ใช่เรื่องน่าอาย", en: "Your body belongs to you. You have the right to protect it and to ask for help when you feel unsafe. This is important and nothing to be ashamed of." },
+      ],
+      k: [
+        { th: "\"จุดส่วนตัว\" คือส่วนที่ชุดว่ายน้ำปิดไว้ เป็นของเราคนเดียว ไม่มีใครมีสิทธิ์ดูหรือแตะโดยไม่จำเป็น", en: "Private parts are the areas a swimsuit covers — they are yours alone" },
+        { th: "การสัมผัสที่ดี = อบอุ่นปลอดภัย (กอดจากพ่อแม่) | ที่ไม่โอเค = ทำให้อึดอัด กลัว หรือสับสน", en: "Good touch feels safe (a parent's hug); not-okay touch makes you uncomfortable or scared" },
+        { th: "กฎ 3 ข้อเมื่อไม่ปลอดภัย: ปฏิเสธ (พูดว่า \"ไม่!\") → หนีออกมา → บอกผู้ใหญ่ที่ไว้ใจได้", en: "3 rules if unsafe: say NO → get away → tell a trusted adult" },
+        { th: "ถ้าเกิดเรื่องไม่ดี ไม่ใช่ความผิดของเราเลย และความลับที่ทำให้อึดอัดไม่ต้องเก็บ", en: "If something bad happens it is never your fault; don't keep secrets that feel wrong" },
+        { th: "ผู้ใหญ่ที่ไว้ใจได้: พ่อ แม่ ครู ญาติสนิท — บอกไปเรื่อย ๆ จนกว่าจะมีคนช่วย", en: "Trusted adults: parents, teachers, close relatives — keep telling until someone helps" },
+      ],
+      ex: [
+        [{ th: "ถ้ามีคนทำให้รู้สึกไม่ปลอดภัย ควรทำอย่างไร", en: "If someone makes you feel unsafe…" }, "ปฏิเสธ–หนี–บอกผู้ใหญ่ที่ไว้ใจ"],
+        [{ th: "ความลับที่ทำให้อึดอัดควรทำอย่างไร", en: "A secret that feels wrong — do what?" }, "บอกผู้ใหญ่ที่ไว้ใจได้"],
+      ],
+      mem: { th: "จำกฎ 3 คำ: \"ไม่ – หนี – บอก\"", en: "Remember 3 words: No – Go – Tell." },
+      tip: { th: "ถ้าเกิดเรื่องไม่ดี ไม่ใช่ความผิดของหนูเลย ให้กล้าบอกผู้ใหญ่ที่ไว้ใจเสมอ", en: "It's never your fault — always be brave and tell a trusted adult." },
+      term: 2,
+    },
+  ],
+};
+
+/* merge Term-1 second-half lessons (tag exam term 2) */
 Object.keys(LESSONS_T1B).forEach((id) => {
-  if (LESSONS[id]) LESSONS[id] = LESSONS[id].concat(LESSONS_T1B[id]);
+  if (LESSONS[id]) LESSONS[id] = LESSONS[id].concat(LESSONS_T1B[id].map((x) => ({ ...x, term: 2 })));
+});
+Object.keys(LESSONS_T2).forEach((id) => {
+  if (LESSONS[id]) LESSONS[id] = LESSONS[id].concat(LESSONS_T2[id].map((x) => ({ ...x, term: x.term || 2 })));
+});
+/* default all lesson sections without a term to exam term 1 */
+Object.keys(LESSONS).forEach((id) => {
+  LESSONS[id] = LESSONS[id].map((x) => ({ ...x, term: x.term || 1 }));
 });
 
 /* ============ TERM 1 — SECOND HALF QUESTIONS (MORE3) ============ */
@@ -2188,19 +2535,179 @@ const MORE3 = {
   },
 };
 
-/* merge Term-1 second-half questions */
+/* ============ EXAM 2 — NEW TOPIC QUESTIONS (MORE4) ============ */
+const MORE4 = {
+  thai: {
+    mcq: [
+      { q: "จดหมายที่เขียนเมื่อไม่สบายจนมาเรียนไม่ได้เรียกว่า", c: ["จดหมายลากิจ", "จดหมายลาป่วย", "จดหมายเชิญ", "จดหมายขอบคุณ"], a: 1, ex: { th: "ป่วย = ลาป่วย", en: "sick = sick leave" } },
+      { q: "คำลงท้ายจดหมายถึงครูที่สุภาพคือ", c: ["จากเพื่อน", "ด้วยความเคารพ", "แล้วเจอกัน", "บ๊ายบาย"], a: 1, ex: { th: "ใช้คำสุภาพกับครู", en: "polite closing" } },
+      { q: "สิ่งที่ต้องมีในจดหมายลาคือ", c: ["เหตุผลและวันที่ลา", "ราคาของเล่น", "เบอร์โทรเพื่อน", "การบ้าน"], a: 0, ex: { th: "บอกเหตุผล+วันที่", en: "reason + dates" } },
+      { q: "ส่วนแรกสุดของจดหมายควรเขียน", c: ["ลงชื่อ", "วันที่", "คำลงท้าย", "เนื้อความ"], a: 1, ex: { th: "ขึ้นต้นด้วยวันที่", en: "start with the date" } },
+    ],
+    fill: [
+      { q: "ลาเพราะไม่สบาย = ลา___", a: ["ป่วย", "ลาป่วย"] },
+      { q: "ลาเพราะมีธุระ = ลา___", a: ["กิจ", "ลากิจ"] },
+    ],
+  },
+  math: {
+    mcq: [
+      { q: "1 เมตร เท่ากับกี่เซนติเมตร", c: ["10", "100", "1000", "50"], a: 1, ex: { th: "1 ม. = 100 ซม.", en: "1 m = 100 cm" } },
+      { q: "2 เมตร = กี่เซนติเมตร", c: ["20", "200", "2000", "120"], a: 1, ex: { th: "2×100=200", en: "200 cm" } },
+      { q: "150 ซม. = กี่เมตรกี่เซนติเมตร", c: ["1 ม. 50 ซม.", "15 ม.", "1 ม. 5 ซม.", "150 ม."], a: 0, ex: { th: "100+50", en: "1 m 50 cm" } },
+      { q: "สามเหลี่ยมมีกี่ด้าน", c: ["2", "3", "4", "5"], a: 1, ex: { th: "3 ด้าน 3 มุม", en: "3 sides" } },
+      { q: "รูปใดไม่มีมุมและไม่มีด้าน", c: ["สี่เหลี่ยม", "สามเหลี่ยม", "วงกลม", "ห้าเหลี่ยม"], a: 2, ex: { th: "วงกลมไม่มีมุม", en: "circle has none" } },
+      { q: "รูปที่พับแล้วสองข้างซ้อนทับกันพอดีมี", c: ["แกนสมมาตร", "3 มิติ", "หลายสี", "จุด"], a: 0, ex: { th: "มีแกนสมมาตร", en: "line of symmetry" } },
+      { q: "ครึ่งหนึ่งเขียนเป็นเศษส่วนคือ", c: ["1/4", "1/2", "2/1", "1/3"], a: 1, ex: { th: "ครึ่ง = 1/2", en: "half = 1/2" } },
+      { q: "แบ่งพิซซา 4 ชิ้นเท่ากัน กิน 1 ชิ้น = กินไปเท่าใด", c: ["1/2", "1/3", "1/4", "3/4"], a: 2, ex: { th: "1 ใน 4 = 1/4", en: "1/4" } },
+      { q: "เศษส่วน 3/4 อ่านว่า", c: ["สามส่วนสี่", "สี่ส่วนสาม", "สามสี่", "หนึ่งส่วนสี่"], a: 0, ex: { th: "3 ใน 4 ส่วน", en: "three quarters" } },
+      { q: "สี่เหลี่ยมจัตุรัสมีกี่มุม", c: ["3", "4", "5", "6"], a: 1, ex: { th: "4 มุม 4 ด้าน", en: "4 corners" } },
+      { q: "ตัวล่างของเศษส่วนบอกอะไร", c: ["แบ่งเป็นกี่ส่วนเท่ากัน", "เอามากี่ส่วน", "ราคา", "ความยาว"], a: 0, ex: { th: "ส่วน = แบ่งกี่ชิ้น", en: "denominator = parts" } },
+      { q: "ห้องยาว 5 เมตร = กี่เซนติเมตร", c: ["50", "500", "5000", "55"], a: 1, ex: { th: "5×100=500", en: "500 cm" } },
+    ],
+    fill: [
+      { q: "1 เมตร = ___ เซนติเมตร (ตัวเลข)", a: ["100", "หนึ่งร้อย"] },
+      { q: "สี่เหลี่ยมมีกี่ด้าน (ตัวเลข)", a: ["4", "สี่"] },
+      { q: "ครึ่งหนึ่งเขียนเป็นเศษส่วน = ___", a: ["1/2", "๑/๒"] },
+      { q: "3 เมตร = ___ ซม. (ตัวเลข)", a: ["300"] },
+    ],
+  },
+  science: {
+    mcq: [
+      { q: { th: "แรงคือสิ่งใด", en: "A force is…" }, c: [{ th: "การผลักหรือดึง", en: "a push or pull" }, { th: "สีชนิดหนึ่ง", en: "a colour" }, { th: "เสียง", en: "a sound" }, { th: "กลิ่น", en: "a smell" }], a: 0, ex: { th: "แรง = ผลัก/ดึง", en: "push or pull" } },
+      { q: { th: "การเตะลูกบอลเป็นแรงชนิดใด", en: "Kicking a ball is which force?" }, c: [{ th: "แรงสัมผัส", en: "contact" }, { th: "แรงไม่สัมผัส", en: "non-contact" }, { th: "แรงแม่เหล็ก", en: "magnetic" }, { th: "ไม่มีแรง", en: "no force" }], a: 0, ex: { th: "ต้องแตะ = สัมผัส", en: "touch = contact" } },
+      { q: { th: "แรงที่ดึงของตกลงพื้นคือ", en: "Force pulling things down" }, c: [{ th: "แรงแม่เหล็ก", en: "magnetism" }, { th: "แรงโน้มถ่วง", en: "gravity" }, { th: "แรงเสียดทาน", en: "friction" }, { th: "แรงลม", en: "wind" }], a: 1, ex: { th: "แรงโน้มถ่วง", en: "gravity" } },
+      { q: { th: "แม่เหล็กดูดของที่ทำจาก", en: "Magnets attract things made of…" }, c: [{ th: "ไม้", en: "wood" }, { th: "พลาสติก", en: "plastic" }, { th: "เหล็ก", en: "iron" }, { th: "แก้ว", en: "glass" }], a: 2, ex: { th: "ดูดเหล็ก", en: "attracts iron" } },
+      { q: { th: "ขั้วแม่เหล็กเหมือนกัน (N-N) จะ", en: "Same magnet poles (N-N) will…" }, c: [{ th: "ดูดกัน", en: "attract" }, { th: "ผลักกัน", en: "repel" }, { th: "ไม่มีอะไรเกิด", en: "nothing" }, { th: "ระเบิด", en: "explode" }], a: 1, ex: { th: "เหมือนผลัก", en: "same = repel" } },
+      { q: { th: "แรงแม่เหล็กจัดเป็นแรงชนิดใด", en: "Magnetism is which force?" }, c: [{ th: "แรงสัมผัส", en: "contact" }, { th: "แรงไม่สัมผัส", en: "non-contact" }, { th: "ไม่ใช่แรง", en: "not a force" }, { th: "แรงเสียดทาน", en: "friction" }], a: 1, ex: { th: "ไม่ต้องแตะ", en: "no touch needed" } },
+      { q: { th: "หน้าต่างทำจากแก้วเพราะ", en: "Windows use glass because…" }, c: [{ th: "โปร่งใสมองผ่านได้", en: "it's clear" }, { th: "อ่อนนุ่ม", en: "it's soft" }, { th: "ดูดแม่เหล็ก", en: "it's magnetic" }, { th: "ยืดหยุ่น", en: "it's stretchy" }], a: 0, ex: { th: "แก้วโปร่งใส", en: "glass is clear" } },
+      { q: { th: "ขั้วต่างกัน (N-S) จะ", en: "Opposite poles (N-S) will…" }, c: [{ th: "ผลักกัน", en: "repel" }, { th: "ดูดกัน", en: "attract" }, { th: "ไม่มีอะไร", en: "nothing" }, { th: "หายไป", en: "vanish" }], a: 1, ex: { th: "ต่างดูด", en: "opposite attract" } },
+    ],
+    fill: [
+      { q: { th: "แรง = การผลักหรือ___", en: "A force is a push or a ___" }, a: ["ดึง", "pull"] },
+      { q: { th: "แม่เหล็กมีกี่ขั้ว (ตัวเลข)", en: "How many poles has a magnet?" }, a: ["2", "สอง"] },
+      { q: { th: "แรงที่ดึงของตกพื้นคือแรงโน้ม___", en: "Force pulling things down is g____" }, a: ["ถ่วง", "gravity"] },
+    ],
+  },
+  scith: {
+    mcq: [
+      { q: "แรงสัมผัสต้องทำอย่างไรกับวัตถุ", c: ["แตะหรือสัมผัส", "ไม่ต้องแตะ", "มองเฉย ๆ", "พูดใส่"], a: 0, ex: { th: "ต้องแตะ", en: "must touch" } },
+      { q: "ตัวอย่างแรงไม่สัมผัสคือ", c: ["ผลักรถ", "ดึงเชือก", "แรงแม่เหล็ก", "เตะบอล"], a: 2, ex: { th: "แม่เหล็กไม่ต้องแตะ", en: "magnetism" } },
+      { q: "แรงทำให้วัตถุเป็นอย่างไรได้", c: ["เคลื่อนที่/หยุด/เปลี่ยนทิศ", "เปลี่ยนสีเอง", "ส่งเสียง", "มีกลิ่น"], a: 0, ex: { th: "แรงเปลี่ยนการเคลื่อนที่", en: "changes motion" } },
+      { q: "ของที่แม่เหล็กดูดไม่ติดคือ", c: ["ตะปูเหล็ก", "คลิปหนีบเหล็ก", "ยางลบ", "กรรไกรเหล็ก"], a: 2, ex: { th: "ยางไม่ใช่โลหะ", en: "rubber not metal" } },
+      { q: "อากาศมีอยู่ทั่วไปและใช้เพื่อ", c: ["หายใจ", "กิน", "อ่านหนังสือ", "วาดรูป"], a: 0, ex: { th: "สิ่งมีชีวิตใช้อากาศหายใจ", en: "air for breathing" } },
+    ],
+    fill: [
+      { q: "แรงที่ต้องแตะวัตถุเรียกแรง___", a: ["สัมผัส", "แรงสัมผัส"] },
+      { q: "แม่เหล็กดูดของที่ทำจาก___", a: ["เหล็ก", "โลหะ"] },
+    ],
+  },
+  social: {
+    mcq: [
+      { q: "ภาษีคือเงินที่ประชาชนจ่ายให้ใคร", c: ["ร้านค้า", "รัฐ/รัฐบาล", "เพื่อนบ้าน", "โรงเรียนเอกชน"], a: 1, ex: { th: "จ่ายให้รัฐ", en: "to the government" } },
+      { q: "ภาษีนำไปใช้ทำอะไร", c: ["สร้างถนน โรงเรียน โรงพยาบาล", "ซื้อของเล่นให้เด็ก", "เที่ยวต่างประเทศ", "เก็บไว้เฉย ๆ"], a: 0, ex: { th: "พัฒนาส่วนรวม", en: "public services" } },
+      { q: "ตอนซื้อของในร้าน เราจ่ายภาษีชนิดใด", c: ["ภาษีเงินได้", "ภาษีมูลค่าเพิ่ม", "ภาษีที่ดิน", "ไม่มีภาษี"], a: 1, ex: { th: "VAT", en: "VAT" } },
+      { q: "การเสียภาษีเป็นสิ่งใด", c: ["หน้าที่ของพลเมืองดี", "การทำผิด", "เรื่องสนุก", "การเล่นเกม"], a: 0, ex: { th: "หน้าที่พลเมือง", en: "a citizen's duty" } },
+    ],
+    fill: [
+      { q: "เงินที่ประชาชนจ่ายให้รัฐเรียกว่า___", a: ["ภาษี"] },
+      { q: "ภาษีตอนซื้อของเรียกภาษีมูลค่า___", a: ["เพิ่ม"] },
+    ],
+  },
+  history: {
+    mcq: [
+      { q: "คนโบราณมักตั้งถิ่นฐานใกล้อะไร", c: ["ภูเขาไฟ", "แหล่งน้ำ/แม่น้ำ", "ทะเลทราย", "ป่าลึก"], a: 1, ex: { th: "ใกล้น้ำเพื่อใช้ดื่ม-เพาะปลูก", en: "near water" } },
+      { q: "เหตุใดจึงตั้งบ้านริมแม่น้ำ", c: ["ใช้ดื่ม เพาะปลูก เดินทาง", "เพราะน้ำท่วมสนุก", "เพราะสวยอย่างเดียว", "ไม่มีเหตุผล"], a: 0, ex: { th: "น้ำจำเป็นต่อชีวิต", en: "water is essential" } },
+      { q: "ชุมชนพัฒนาจากเล็กไปใหญ่ตามลำดับใด", c: ["เมือง→หมู่บ้าน", "หมู่บ้าน→เมือง", "ป่า→ทะเล", "ไม่เปลี่ยน"], a: 1, ex: { th: "หมู่บ้าน → เมือง", en: "village → town" } },
+      { q: "วัฒนธรรมของแต่ละชุมชนต่างกันเพราะ", c: ["สภาพแวดล้อมและความเชื่อ", "สีเสื้อ", "จำนวนรถ", "ยี่ห้อมือถือ"], a: 0, ex: { th: "ต่างตามพื้นที่-ความเชื่อ", en: "environment & belief" } },
+    ],
+    fill: [
+      { q: "คนโบราณตั้งบ้านใกล้แหล่ง___", a: ["น้ำ", "แม่น้ำ"] },
+      { q: "ชุมชนพัฒนาจากหมู่บ้านกลายเป็น___", a: ["เมือง"] },
+    ],
+  },
+  arts: {
+    mcq: [
+      { q: "ไปโรงเรียนควรแต่งกายด้วยชุดใด", c: ["ชุดนอน", "ชุดนักเรียน", "ชุดว่ายน้ำ", "ชุดกีฬาเท่านั้น"], a: 1, ex: { th: "แต่งให้เหมาะโอกาส", en: "school uniform" } },
+      { q: "กระดุมเสื้อหลุด ควรทำอย่างไร", c: ["ทิ้งเสื้อ", "เย็บติดด้วยเข็มและด้าย", "ใช้กาว", "ปล่อยไว้"], a: 1, ex: { th: "ซ่อมด้วยเข็มด้าย", en: "sew it on" } },
+      { q: "แคนและโปงลางเป็นดนตรีของภาคใด", c: ["เหนือ", "อีสาน", "กลาง", "ใต้"], a: 1, ex: { th: "อีสาน", en: "Northeast" } },
+      { q: "หนังตะลุงและโนราเป็นของภาคใด", c: ["เหนือ", "อีสาน", "กลาง", "ใต้"], a: 3, ex: { th: "ภาคใต้", en: "South" } },
+      { q: "อยากวาดภาพสื่อความ 'สนุกสดใส' ควรใช้สี", c: ["สีสดใส", "สีดำมืด", "สีเทา", "ไม่มีสี"], a: 0, ex: { th: "สีสดใส = ร่าเริง", en: "bright = happy" } },
+      { q: "เส้นโค้งนุ่มนวลสื่อความรู้สึกแบบใด", c: ["สงบ อ่อนโยน", "โกรธ รุนแรง", "ตื่นเต้น", "น่ากลัว"], a: 0, ex: { th: "โค้ง = สงบ", en: "curves = calm" } },
+      { q: "ดนตรีล้านนา (สะล้อ ซึง) เป็นของภาคใด", c: ["เหนือ", "ใต้", "อีสาน", "กลาง"], a: 0, ex: { th: "ภาคเหนือ", en: "North" } },
+    ],
+    fill: [
+      { q: "ไปโรงเรียนแต่งชุด___", a: ["นักเรียน", "ชุดนักเรียน"] },
+      { q: "แคน โปงลาง เป็นดนตรีภาค___", a: ["อีสาน", "ตะวันออกเฉียงเหนือ"] },
+      { q: "ซ่อมกระดุมใช้เข็มและ___", a: ["ด้าย"] },
+    ],
+  },
+  english: {
+    mcq: [
+      { q: "Is there ___ juice?", c: ["some", "any", "a", "many"], a: 1, ex: { th: "คำถามใช้ any", en: "question → any" } },
+      { q: "There is ___ milk in the glass.", c: ["any", "some", "a", "an"], a: 1, ex: { th: "บอกเล่าใช้ some", en: "positive → some" } },
+      { q: "There isn't ___ bread.", c: ["some", "any", "a", "two"], a: 1, ex: { th: "ปฏิเสธใช้ any", en: "negative → any" } },
+      { q: "She ___ going to swim.", c: ["am", "is", "are", "be"], a: 1, ex: { th: "she + is going to", en: "she → is" } },
+      { q: "We ___ going to play football.", c: ["is", "am", "are", "be"], a: 2, ex: { th: "we + are going to", en: "we → are" } },
+      { q: "'be going to' ใช้บอกอะไร", c: [{ th: "อดีต", en: "the past" }, { th: "แผนอนาคต", en: "future plans" }, { th: "ตอนนี้", en: "right now" }, { th: "ทุกวัน", en: "every day" }], a: 1, ex: { th: "แผนอนาคต", en: "future plans" } },
+      { q: "Have you got ___ pens?", c: ["some", "any", "a", "an"], a: 1, ex: { th: "คำถาม → any", en: "question → any" } },
+      { q: "I ___ going to read a book.", c: ["am", "is", "are", "be"], a: 0, ex: { th: "I + am going to", en: "I → am" } },
+    ],
+    fill: [
+      { q: "Is there ___ water? (some/any)", a: ["any"] },
+      { q: "There is ___ cheese. (some/any)", a: ["some"] },
+      { q: "They ___ going to sing. (am/is/are)", a: ["are"] },
+    ],
+  },
+  time: {
+    mcq: [
+      { q: "I ___ reading at 8 pm last night. (was/were)", c: ["was", "were", "am", "is"], a: 0, ex: { th: "I + was", en: "I → was" } },
+      { q: "They ___ playing in the park.", c: ["was", "were", "is", "am"], a: 1, ex: { th: "they + were", en: "they → were" } },
+      { q: "Where do we send letters?", c: ["hospital", "post office", "bank", "market"], a: 1, ex: { th: "ที่ทำการไปรษณีย์", en: "post office" } },
+      { q: "Where do we buy medicine / see a doctor?", c: ["temple", "hospital", "park", "shop"], a: 1, ex: { th: "โรงพยาบาล", en: "hospital" } },
+      { q: "She ___ eating dinner at 7. (past)", c: ["is", "was", "were", "are"], a: 1, ex: { th: "she + was", en: "she → was" } },
+      { q: "Past continuous ใช้ was/were + ", c: ["กริยาช่อง 2", "กริยา + ing", "กริยาช่อง 3", "คำนาม"], a: 1, ex: { th: "was/were + V-ing", en: "was/were + verb-ing" } },
+      { q: "We keep our money at the…", c: ["park", "bank", "temple", "market"], a: 1, ex: { th: "ธนาคาร", en: "bank" } },
+    ],
+    fill: [
+      { q: "They ___ playing. (was/were)", a: ["were"] },
+      { q: "I ___ sleeping. (was/were)", a: ["was"] },
+      { q: "สถานที่ส่งจดหมายภาษาอังกฤษคือ post ___", a: ["office"] },
+    ],
+  },
+  health: {
+    mcq: [
+      { q: "ป้องกันไข้หวัดทำได้โดย", c: ["ล้างมือ ใส่หน้ากาก พักผ่อน", "กินขนมเยอะ ๆ", "นอนดึก", "ไม่อาบน้ำ"], a: 0, ex: { th: "สุขนิสัยดีป้องกันหวัด", en: "good hygiene" } },
+      { q: "ท้องเสียมักเกิดจาก", c: ["อาหาร/น้ำไม่สะอาด", "อ่านหนังสือ", "ออกกำลังกาย", "นอนพอ"], a: 0, ex: { th: "ของไม่สะอาด", en: "unclean food/water" } },
+      { q: "ป้องกันฟันผุทำได้โดย", c: ["แปรงฟันวันละ 2 ครั้ง", "กินลูกอมทั้งวัน", "ไม่แปรงฟัน", "ดื่มน้ำหวานบ่อย"], a: 0, ex: { th: "แปรงฟัน ลดขนม", en: "brush twice, less sweets" } },
+      { q: "\"จุดส่วนตัว\" ของร่างกายคือส่วนที่", c: ["มือและเท้า", "ชุดว่ายน้ำปิดไว้", "หน้าและผม", "แขนและขา"], a: 1, ex: { th: "ส่วนที่ชุดว่ายน้ำปิด", en: "areas a swimsuit covers" } },
+      { q: "ถ้ามีคนทำให้เรารู้สึกไม่ปลอดภัย ควรทำอย่างไร", c: ["เก็บเป็นความลับ", "ปฏิเสธ หนี และบอกผู้ใหญ่ที่ไว้ใจ", "ทำตามเงียบ ๆ", "โทษตัวเอง"], a: 1, ex: { th: "ไม่-หนี-บอก", en: "No-Go-Tell" } },
+      { q: "ถ้าเกิดเรื่องไม่ดีกับตัวเรา เป็นความผิดของใคร", c: ["ความผิดของเรา", "ไม่ใช่ความผิดของเราเลย", "ความผิดของเพื่อน", "ไม่มีใครช่วยได้"], a: 1, ex: { th: "ไม่ใช่ความผิดของเด็ก", en: "never the child's fault" } },
+      { q: "ผู้ใหญ่ที่ไว้ใจได้เพื่อขอความช่วยเหลือคือ", c: ["คนแปลกหน้า", "พ่อ แม่ ครู", "ไม่มีใคร", "เพื่อนวัยเดียวกันเท่านั้น"], a: 1, ex: { th: "พ่อ แม่ ครู ญาติสนิท", en: "parents, teachers" } },
+      { q: "กินอาหารครบ 5 หมู่ช่วยให้", c: ["แข็งแรง ไม่ป่วยง่าย", "ตัวเตี้ยลง", "ป่วยบ่อย", "ง่วงตลอด"], a: 0, ex: { th: "อาหารดี = แข็งแรง", en: "healthy food = strong" } },
+    ],
+    fill: [
+      { q: "ป้องกันโรคง่าย ๆ คือล้าง___บ่อย ๆ", a: ["มือ"] },
+      { q: "กฎความปลอดภัย 3 คำ: ไม่ – หนี – ___", a: ["บอก"] },
+      { q: "ถ้ารู้สึกไม่ปลอดภัย ให้บอกผู้ใหญ่ที่ไว้___", a: ["ใจ", "ไว้ใจ"] },
+    ],
+  },
+};
+
+/* merge Term-1 second-half + exam-2 questions (tag term 2) */
 SUBJECTS.forEach((s) => {
-  const extra = MORE3[s.id];
-  if (extra) {
-    if (extra.mcq) s.mcq = s.mcq.concat(extra.mcq);
-    if (extra.fill) s.fill = s.fill.concat(extra.fill);
-  }
+  [MORE3, MORE4].forEach((PACK) => {
+    const extra = PACK[s.id];
+    if (extra) {
+      if (extra.mcq) s.mcq = s.mcq.concat(extra.mcq.map((q) => ({ ...q, term: 2 })));
+      if (extra.fill) s.fill = s.fill.concat(extra.fill.map((q) => ({ ...q, term: 2 })));
+    }
+  });
 });
 
 /* assign stable ids */
 SUBJECTS.forEach((s) => {
-  s.mcq.forEach((q, i) => { q.qid = `${s.id}-m${i}`; q._sid = s.id; });
-  s.fill.forEach((q, i) => { q.qid = `${s.id}-f${i}`; });
+  s.mcq.forEach((q, i) => { q.qid = `${s.id}-m${i}`; q._sid = s.id; q.term = q.term || 1; });
+  s.fill.forEach((q, i) => { q.qid = `${s.id}-f${i}`; q.term = q.term || 1; });
 });
 const ALL_MCQ = SUBJECTS.flatMap((s) => s.mcq);
 const QID_MAP = Object.fromEntries(ALL_MCQ.map((q) => [q.qid, q]));
@@ -2289,12 +2796,24 @@ function ProgressDots({ n, i, color }) {
 }
 
 /* ================= modes ================= */
-function Lesson({ subj, lg, onDone }) {
+function Lesson({ subj, lg, onDone, exam }) {
   const t = UI[lg];
-  const sections = LESSONS[subj.id] || [];
+  const all = LESSONS[subj.id] || [];
+  const sections = byExam(all, exam);
   const [i, setI] = useState(0);
-  const s = sections[i];
+  const s = sections[i] || sections[0];
   const asArr = (x) => (Array.isArray(x) ? x : x ? [x] : []);
+  if (!s) {
+    return (
+      <div className="pop" style={{ padding: 24, maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ fontSize: 40 }}>📖</div>
+        <div style={{ fontSize: 17, marginTop: 8, color: "var(--muted)" }}>
+          {lg === "th" ? "ยังไม่มีเนื้อหาส่วนอ่านสำหรับตัวกรองนี้" : "No reading content for this filter"}
+        </div>
+        <div style={{ marginTop: 16 }}><Btn bg={subj.color} color="#fff" onClick={() => onDone(null)}>{t.home}</Btn></div>
+      </div>
+    );
+  }
   return (
     <div className="pop" style={{ padding: 16, maxWidth: 640, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -2734,22 +3253,23 @@ function Report({ store, lg, onHome }) {
 /* ================= main app ================= */
 export default function P3ReviewApp() {
   const [lg, setLg] = useState("th");
-  const [store, setStore] = useState({ stars: 0, seen: {}, wrong: [], stats: {}, dark: false });
+  const [store, setStore] = useState({ stars: 0, seen: {}, wrong: [], stats: {}, dark: false, exam: "all" });
   const [view, setView] = useState({ screen: "home" });
   const t = UI[lg];
 
   useEffect(() => {
     loadStore().then((s) => {
-      if (s) setStore({ stars: s.stars || 0, seen: s.seen || {}, wrong: (s.wrong || []).filter((id) => QID_MAP[id]), stats: s.stats || {}, dark: !!s.dark });
+      if (s) setStore({ stars: s.stars || 0, seen: s.seen || {}, wrong: (s.wrong || []).filter((id) => QID_MAP[id]), stats: s.stats || {}, dark: !!s.dark, exam: s.exam || "all" });
     });
   }, []);
 
   const update = (fn) => setStore((prev) => { const next = fn(prev); saveStore(next); return next; });
+  const exam = store.exam || "all";
 
-  const startMock = () => setView({ screen: "play", mode: "mock", qs: pickN(ALL_MCQ, MOCK_LEN, store.seen) });
-  const startTimedAll = () => setView({ screen: "play", mode: "timed", qs: shuffle(ALL_MCQ) });
+  const startMock = () => setView({ screen: "play", mode: "mock", qs: pickN(byExam(ALL_MCQ, exam), MOCK_LEN, store.seen) });
+  const startTimedAll = () => setView({ screen: "play", mode: "timed", qs: shuffle(byExam(ALL_MCQ, exam)) });
   const startRedo = () => {
-    const qs = shuffle(store.wrong.map((id) => QID_MAP[id]).filter(Boolean)).slice(0, QUIZ_LEN);
+    const qs = shuffle(byExam(store.wrong.map((id) => QID_MAP[id]).filter(Boolean), exam)).slice(0, QUIZ_LEN);
     if (qs.length) setView({ screen: "play", mode: "redo", qs });
   };
 
@@ -2784,21 +3304,21 @@ export default function P3ReviewApp() {
     if (v.mode === "mock") startMock();
     else if (v.mode === "redo") startRedo();
     else if (v.mode === "timed" && !v.subj) startTimedAll();
-    else if (v.mode === "quiz") setView({ screen: "play", mode: "quiz", subj: v.subj, qs: pickN(v.subj.mcq, QUIZ_LEN, store.seen) });
-    else if (v.mode === "timed") setView({ screen: "play", mode: "timed", subj: v.subj, qs: shuffle(v.subj.mcq) });
-    else if (v.mode === "fill") setView({ screen: "play", mode: "fill", subj: v.subj, qs: pickN(v.subj.fill, QUIZ_LEN, store.seen) });
+    else if (v.mode === "quiz") setView({ screen: "play", mode: "quiz", subj: v.subj, qs: pickN(byExam(v.subj.mcq, exam), QUIZ_LEN, store.seen) });
+    else if (v.mode === "timed") setView({ screen: "play", mode: "timed", subj: v.subj, qs: shuffle(byExam(v.subj.mcq, exam)) });
+    else if (v.mode === "fill") setView({ screen: "play", mode: "fill", subj: v.subj, qs: pickN(byExam(v.subj.fill, exam), QUIZ_LEN, store.seen) });
     else setView({ screen: "play", mode: v.mode, subj: v.subj });
   };
 
   const startMode = (m, subj) => {
-    if (m === "quiz") setView({ screen: "play", mode: "quiz", subj, qs: pickN(subj.mcq, QUIZ_LEN, store.seen) });
-    else if (m === "timed") setView({ screen: "play", mode: "timed", subj, qs: shuffle(subj.mcq) });
-    else if (m === "fill") setView({ screen: "play", mode: "fill", subj, qs: pickN(subj.fill, QUIZ_LEN, store.seen) });
-    else setView({ screen: "play", mode: m, subj });
+    if (m === "quiz") setView({ screen: "play", mode: "quiz", subj, qs: pickN(byExam(subj.mcq, exam), QUIZ_LEN, store.seen) });
+    else if (m === "timed") setView({ screen: "play", mode: "timed", subj, qs: shuffle(byExam(subj.mcq, exam)) });
+    else if (m === "fill") setView({ screen: "play", mode: "fill", subj, qs: pickN(byExam(subj.fill, exam), QUIZ_LEN, store.seen) });
+    else setView({ screen: "play", mode: m, subj, exam });
   };
 
   const resetAll = () => {
-    if (window.confirm(t.resetConfirm)) update((prev) => ({ stars: 0, seen: {}, wrong: [], stats: {}, dark: prev.dark }));
+    if (window.confirm(t.resetConfirm)) update((prev) => ({ stars: 0, seen: {}, wrong: [], stats: {}, dark: prev.dark, exam: prev.exam }));
   };
 
   const doBackup = () => {
@@ -2833,8 +3353,9 @@ export default function P3ReviewApp() {
     { id: "timed", icon: "⏱", label: t.timed },
   ];
 
-  const totalMcq = ALL_MCQ.length;
-  const totalSeen = ALL_MCQ.filter((q) => store.seen[q.qid]).length;
+  const totalMcq = byExam(ALL_MCQ, exam).length;
+  const totalSeen = byExam(ALL_MCQ, exam).filter((q) => store.seen[q.qid]).length;
+  const setExam = (e) => update((prev) => ({ ...prev, exam: e }));
 
   return (
     <div className={"p3" + (store.dark ? " dark" : "")}>
@@ -2851,8 +3372,18 @@ export default function P3ReviewApp() {
           <div style={{ textAlign: "center", margin: "8px 0 2px", fontSize: 30, fontWeight: 700 }}>
             {t.appTitle} <span className="starPop">✏️</span>
           </div>
-          <div style={{ textAlign: "center", color: "#777", marginBottom: 6 }}>{t.appSub}</div>
-          <div style={{ textAlign: "center", fontSize: 13, color: "#999", marginBottom: 14 }}>
+          <div style={{ textAlign: "center", color: "var(--muted)", marginBottom: 10 }}>{t.appSub}</div>
+
+          <div style={{ display: "flex", gap: 6, background: "var(--line)", borderRadius: 999, padding: 4, marginBottom: 8 }}>
+            {[["all", t.examAll], ["1", t.exam1], ["2", t.exam2]].map(([val, lbl]) => (
+              <button key={val} onClick={() => setExam(val)}
+                style={{ flex: 1, borderRadius: 999, padding: "8px 4px", fontWeight: 700, fontSize: 14,
+                  background: exam === val ? INK : "transparent", color: exam === val ? "#fff" : "var(--ink)", transition: "all .15s" }}>
+                {lbl}
+              </button>
+            ))}
+          </div>
+          <div style={{ textAlign: "center", fontSize: 13, color: "var(--muted)", marginBottom: 14 }}>
             {t.seenProgress}: {totalSeen}/{totalMcq}
           </div>
 
@@ -2869,14 +3400,18 @@ export default function P3ReviewApp() {
             </button>
           </div>
 
-          <button onClick={startRedo} disabled={store.wrong.length === 0}
-            style={{ width: "100%", background: store.wrong.length ? "#F5B82E" : "#eee", color: store.wrong.length ? INK : "#aaa", borderRadius: 20, padding: 16, textAlign: "left", boxShadow: store.wrong.length ? "0 4px 0 rgba(0,0,0,0.15)" : "none", marginBottom: 20, cursor: store.wrong.length ? "pointer" : "default" }}>
+          {(() => {
+          const wrongN = byExam(store.wrong.map((id) => QID_MAP[id]).filter(Boolean), exam).length;
+          return (
+          <button onClick={startRedo} disabled={wrongN === 0}
+            style={{ width: "100%", background: wrongN ? "#F5B82E" : "var(--line)", color: wrongN ? INK : "var(--muted)", borderRadius: 20, padding: 16, textAlign: "left", boxShadow: wrongN ? "0 4px 0 rgba(0,0,0,0.15)" : "none", marginBottom: 20, cursor: wrongN ? "pointer" : "default" }}>
             <span style={{ fontSize: 22, marginRight: 10 }}>🔁</span>
             <span style={{ fontWeight: 700, fontSize: 18 }}>
-              {t.redo} {store.wrong.length > 0 ? `(${store.wrong.length})` : ""}
+              {t.redo} {wrongN > 0 ? `(${wrongN})` : ""}
             </span>
-            <div style={{ fontSize: 13, opacity: 0.8, marginLeft: 32 }}>{store.wrong.length ? t.redoSub : t.noWrong}</div>
+            <div style={{ fontSize: 13, opacity: 0.8, marginLeft: 32 }}>{wrongN ? t.redoSub : t.noWrong}</div>
           </button>
+          ); })()}
 
           <button onClick={() => setView({ screen: "report" })}
             style={{ width: "100%", background: "var(--card)", color: "var(--ink)", borderRadius: 20, padding: 16, textAlign: "left", border: `2px solid ${INK}22`, boxShadow: "0 3px 0 rgba(34,53,107,0.12)", marginBottom: 20 }}>
@@ -2891,8 +3426,9 @@ export default function P3ReviewApp() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12, paddingBottom: 10 }}>
             {SUBJECTS.map((s) => {
-              const seenC = s.mcq.filter((q) => store.seen[q.qid]).length;
-              const pct = Math.round((seenC / s.mcq.length) * 100);
+              const pool = byExam(s.mcq, exam);
+              const seenC = pool.filter((q) => store.seen[q.qid]).length;
+              const pct = pool.length ? Math.round((seenC / pool.length) * 100) : 0;
               return (
                 <button key={s.id} onClick={() => setView({ screen: "modes", subj: s })}
                   style={{ background: "var(--card)", borderRadius: 18, padding: "16px 12px 12px", textAlign: "center", borderTop: `10px solid ${s.color}`, boxShadow: "0 4px 0 rgba(34,53,107,0.15)", color: "var(--ink)" }}>
@@ -2901,7 +3437,7 @@ export default function P3ReviewApp() {
                   <div style={{ marginTop: 8, height: 6, borderRadius: 3, background: "var(--line)", overflow: "hidden" }}>
                     <div style={{ width: `${pct}%`, height: "100%", background: s.color, transition: "width .3s" }} />
                   </div>
-                  <div style={{ fontSize: 11, color: "#999", marginTop: 3 }}>{seenC}/{s.mcq.length}</div>
+                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>{seenC}/{pool.length}</div>
                 </button>
               );
             })}
@@ -2943,7 +3479,7 @@ export default function P3ReviewApp() {
 
       {view.screen === "report" && <Report store={store} lg={lg} onHome={() => setView({ screen: "home" })} />}
 
-      {view.screen === "play" && view.mode === "read" && <Lesson subj={view.subj} lg={lg} onDone={finish} />}
+      {view.screen === "play" && view.mode === "read" && <Lesson subj={view.subj} lg={lg} onDone={finish} exam={exam} />}
       {view.screen === "play" && view.mode === "flash" && <Flashcards subj={view.subj} lg={lg} onDone={finish} />}
       {view.screen === "play" && view.mode === "quiz" && <Quiz questions={view.qs} lg={lg} color={view.subj.color} instant onDone={finish} />}
       {view.screen === "play" && view.mode === "redo" && <Quiz questions={view.qs} lg={lg} color="#F5B82E" instant onDone={finish} />}
