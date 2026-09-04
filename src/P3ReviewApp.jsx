@@ -123,7 +123,7 @@ const UI = {
 const SUBJECTS = [
   {
     id: "english", icon: "📚", color: "#3E7BD6",
-    name: { th: "English (Unit 0–2)", en: "English (Unit 0–2)" },
+    name: { th: "English", en: "English" },
     flash: [
       { f: "What's your name?", b: "My name is … (ฉันชื่อ…)" },
       { f: "There is + ?", b: "เอกพจน์ 1 สิ่ง — There is a clock." },
@@ -1706,6 +1706,491 @@ const MORE2 = {
 /* merge expansion pack 2 into base subjects */
 SUBJECTS.forEach((s) => {
   const extra = MORE2[s.id];
+  if (extra) {
+    if (extra.mcq) s.mcq = s.mcq.concat(extra.mcq);
+    if (extra.fill) s.fill = s.fill.concat(extra.fill);
+  }
+});
+
+/* ============ TERM 1 — SECOND HALF LESSONS (standard curriculum) ============ */
+const LESSONS_T1B = {
+  english: [
+    {
+      h: { th: "ครอบครัว & ร่างกาย (Family & Body)", en: "Family & Body" },
+      p: [
+        { th: "ครึ่งหลังของเทอมเพิ่มคำศัพท์ครอบครัว อวัยวะร่างกาย และการบอกว่าทำอะไรได้ (can)", en: "The second half adds family words, body parts, and saying what you can do (can)." },
+      ],
+      k: [
+        { th: "Family: father, mother, brother, sister, baby, grandfather, grandmother", en: "Family: father, mother, brother, sister, baby, grandparents" },
+        { th: "Body: head, hair, eye, ear, nose, mouth, hand, arm, leg, foot (feet)", en: "Body: head, hair, eye, ear, nose, mouth, hand, arm, leg, foot (feet)" },
+        { th: "can / can't บอกความสามารถ: I can swim. / I can't fly.", en: "can / can't for ability: I can swim. / I can't fly." },
+        { th: "This is my … (นี่คือ…ของฉัน) เช่น This is my sister.", en: "This is my … e.g. This is my sister." },
+      ],
+      ex: [
+        [{ th: "พหูพจน์ของ foot", en: "Plural of foot" }, "feet"],
+        [{ th: "I ___ swim. (ว่ายน้ำได้)", en: "I ___ swim. (able to)" }, "can"],
+      ],
+      mem: { th: "จำ 'can = ทำได้', 'can't = ทำไม่ได้' ตามด้วยกริยาช่องที่ 1 เสมอ", en: "can = able, can't = not able, always followed by the base verb." },
+      tip: { th: "foot → feet, tooth → teeth เป็นพหูพจน์พิเศษ ไม่เติม s", en: "foot→feet, tooth→teeth are irregular plurals (no -s)." },
+    },
+    {
+      h: { th: "สัตว์ & Present Continuous (กำลังทำ)", en: "Animals & Present Continuous" },
+      p: [
+        { th: "คำศัพท์สัตว์ และการบอกสิ่งที่ 'กำลังทำอยู่ตอนนี้' ด้วย am/is/are + กริยา-ing", en: "Animal words and saying what is happening now with am/is/are + verb-ing." },
+      ],
+      k: [
+        { th: "Animals: dog, cat, bird, fish, rabbit, monkey, elephant, lion", en: "Animals: dog, cat, bird, fish, rabbit, monkey, elephant, lion" },
+        { th: "I am running. / She is eating. / They are playing.", en: "I am running. / She is eating. / They are playing." },
+        { th: "am (I) / is (he,she,it) / are (you,we,they)", en: "am (I) / is (he,she,it) / are (you,we,they)" },
+      ],
+      ex: [
+        [{ th: "She ___ eating. (is/are)", en: "She ___ eating." }, "is"],
+        [{ th: "run + ing =", en: "run + ing =" }, "running (ซ้ำ n)"],
+      ],
+      mem: { th: "สูตร: ประธาน + (am/is/are) + กริยาเติม -ing", en: "Formula: subject + (am/is/are) + verb-ing." },
+      tip: { th: "คำลงท้ายพยัญชนะเดี่ยว+สระสั้น ให้ซ้ำตัวสุดท้าย: run→running, swim→swimming", en: "Short-vowel + single consonant → double it: run→running, swim→swimming." },
+    },
+  ],
+  time: [
+    {
+      h: { th: "วันในสัปดาห์ & เดือน (Days & Months)", en: "Days & Months" },
+      p: [
+        { th: "เพิ่มการบอกวันและเดือนเป็นภาษาอังกฤษ และถาม-ตอบว่าวันนี้วันอะไร", en: "Adds days and months in English, and asking what day it is." },
+      ],
+      k: [
+        { th: "Days: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday", en: "Days: Sunday–Saturday" },
+        { th: "Months: January, February, March … December (12 เดือน)", en: "Months: January … December (12 months)" },
+        { th: "What day is it today? — It's Monday.", en: "What day is it today? — It's Monday." },
+        { th: "เลขลำดับ: first, second, third, fourth, fifth …", en: "Ordinals: first, second, third, fourth, fifth …" },
+      ],
+      ex: [
+        [{ th: "วันหลัง Monday คือ", en: "The day after Monday" }, "Tuesday"],
+        [{ th: "เดือนแรกของปี", en: "First month of the year" }, "January"],
+      ],
+      mem: { th: "1 สัปดาห์มี 7 วัน / 1 ปีมี 12 เดือน — ท่องเรียงให้คล่อง", en: "7 days a week, 12 months a year — recite them in order." },
+      tip: { th: "วันและเดือนในภาษาอังกฤษขึ้นต้นด้วยตัวพิมพ์ใหญ่เสมอ (Monday, June)", en: "Days and months are always capitalised (Monday, June)." },
+    },
+  ],
+  math: [
+    {
+      h: { th: "การคูณ (Multiplication)", en: "Multiplication" },
+      p: [
+        { th: "การคูณคือการบวกซ้ำ ๆ เช่น 4 × 3 = 4 + 4 + 4 = 12 ต้องท่องสูตรคูณให้คล่อง", en: "Multiplication is repeated addition: 4 × 3 = 4 + 4 + 4 = 12. Learn the times tables well." },
+      ],
+      k: [
+        { th: "สูตรคูณแม่ 2–9 ควรท่องได้ เช่น 7 × 8 = 56, 6 × 9 = 54", en: "Memorise tables 2–9, e.g. 7 × 8 = 56, 6 × 9 = 54" },
+        { th: "คูณจำนวนหลายหลักกับ 1 หลัก: 123 × 3 = 369 (คูณทีละหลักจากขวา)", en: "Multi-digit × 1-digit: 123 × 3 = 369 (multiply each place right→left)" },
+        { th: "การคูณมีการทด เช่น 27 × 4 = 108 (7×4=28 ใส่ 8 ทด 2)", en: "Carrying: 27 × 4 = 108" },
+        { th: "อะไรคูณ 0 ได้ 0 เสมอ / อะไรคูณ 1 ได้ตัวเดิม", en: "Anything × 0 = 0; anything × 1 = itself" },
+      ],
+      ex: [
+        ["7 × 8 =", "56"],
+        ["123 × 3 =", "369"],
+        ["25 × 4 =", "100"],
+      ],
+      mem: { th: "คูณ = บวกตัวเดิมซ้ำหลาย ๆ ครั้ง นึกภาพของเป็นกลุ่ม ๆ", en: "Multiply = add the same number several times; picture equal groups." },
+      tip: { th: "ท่องสูตรคูณแม่ 6, 7, 8 ให้แม่นเป็นพิเศษ เพราะออกสอบและใช้ต่อยอดการหาร", en: "Master the 6, 7, 8 tables — they're tested most and needed for division." },
+    },
+    {
+      h: { th: "การหาร (Division) & แบบรูป (Patterns)", en: "Division & Patterns" },
+      p: [
+        { th: "การหารคือการแบ่งเป็นกลุ่มเท่า ๆ กัน เป็นตัวผกผันของการคูณ และแบบรูปคือชุดที่เพิ่ม/ลดอย่างมีกฎ", en: "Division shares into equal groups (the opposite of multiplication). Patterns increase or decrease by a rule." },
+      ],
+      k: [
+        { th: "56 ÷ 7 = 8 เพราะ 7 × 8 = 56 (ใช้สูตรคูณช่วยหาร)", en: "56 ÷ 7 = 8 because 7 × 8 = 56 (use tables to divide)" },
+        { th: "แบ่งเท่า ๆ กัน: ลูกอม 12 เม็ด แบ่งให้ 3 คน = คนละ 4 เม็ด", en: "Equal sharing: 12 sweets ÷ 3 = 4 each" },
+        { th: "แบบรูปเพิ่มทีละเท่า: 5, 10, 15, 20, … (เพิ่มทีละ 5)", en: "Pattern +5: 5, 10, 15, 20, …" },
+        { th: "แบบรูปลด: 30, 27, 24, 21, … (ลดทีละ 3)", en: "Pattern −3: 30, 27, 24, 21, …" },
+      ],
+      ex: [
+        ["81 ÷ 9 =", "9"],
+        [{ th: "2, 4, 6, 8, __ (เพิ่มทีละ 2)", en: "2, 4, 6, 8, __" }, "10"],
+        [{ th: "ลูกอม 20 เม็ด แบ่ง 4 คน คนละ", en: "20 sweets ÷ 4 =" }, "5 เม็ด"],
+      ],
+      mem: { th: "หารไม่ออกให้ถามตัวเอง 'ตัวหารคูณอะไรได้ตัวตั้ง' เช่น 56÷7 → 7 คูณอะไรได้ 56", en: "To divide, ask 'the divisor times what equals this?' 56÷7 → 7 × ? = 56." },
+      tip: { th: "การคูณกับการหารเป็นคู่กัน จำสูตรคูณแม่นแล้วหารง่ายขึ้นมาก", en: "Multiplication and division are pairs — strong tables make division easy." },
+    },
+  ],
+  science: [
+    {
+      h: { th: "ส่วนต่าง ๆ ของพืชและหน้าที่ (Parts of a plant)", en: "Parts of a plant" },
+      p: [
+        { th: "พืชมีส่วนประกอบสำคัญที่ทำหน้าที่ต่างกัน ช่วยให้พืชมีชีวิตและเติบโต", en: "A plant has parts with different jobs that keep it alive and help it grow." },
+      ],
+      k: [
+        { th: "ราก (roots): ดูดน้ำและแร่ธาตุ + ยึดลำต้นไว้กับดิน", en: "Roots: absorb water & minerals, anchor the plant" },
+        { th: "ลำต้น (stem): ลำเลียงน้ำ-อาหาร และค้ำจุนต้น", en: "Stem: transports water/food, supports the plant" },
+        { th: "ใบ (leaf): สร้างอาหารด้วยแสง (สังเคราะห์ด้วยแสง)", en: "Leaf: makes food using sunlight (photosynthesis)" },
+        { th: "ดอก (flower): ใช้สืบพันธุ์ | ผล (fruit): ห่อหุ้มเมล็ด", en: "Flower: reproduction | Fruit: protects the seeds" },
+      ],
+      ex: [
+        [{ th: "ส่วนที่ดูดน้ำจากดินคือ", en: "Part that absorbs water" }, "ราก / roots"],
+        [{ th: "ใบมีหน้าที่", en: "The leaf's job is to" }, "สร้างอาหาร (สังเคราะห์แสง)"],
+      ],
+      mem: { th: "ท่องล่างขึ้นบน: ราก–ลำต้น–ใบ–ดอก–ผล", en: "Bottom to top: root–stem–leaf–flower–fruit." },
+      tip: { th: "อย่าสับสน: 'ราก' ดูดน้ำ ส่วน 'ใบ' สร้างอาหาร — เป็นคนละหน้าที่", en: "Don't mix up: roots absorb water; leaves make food." },
+    },
+    {
+      h: { th: "ปัจจัยที่พืชต้องการเพื่อเติบโต", en: "What plants need to grow" },
+      p: [
+        { th: "พืชต้องการปัจจัยหลายอย่างจึงจะเจริญเติบโต ถ้าขาดอย่างใดอย่างหนึ่งจะโตไม่ดี", en: "Plants need several things to grow well; missing any one harms growth." },
+      ],
+      k: [
+        { th: "4 อย่างหลัก: น้ำ แสงแดด อากาศ และธาตุอาหารในดิน", en: "Four needs: water, sunlight, air, nutrients in the soil" },
+        { th: "แสงแดดใช้สร้างอาหารที่ใบ | น้ำช่วยลำเลียงและเติบโต", en: "Sunlight for making food; water for transport and growth" },
+      ],
+      ex: [
+        [{ th: "พืชขาดแสงจะเป็นอย่างไร", en: "A plant with no light will…" }, "โตไม่ดี/ใบซีด"],
+        [{ th: "ปัจจัยพืช 4 อย่างคือ", en: "The 4 plant needs are" }, "น้ำ แสง อากาศ ธาตุอาหาร"],
+      ],
+      mem: { th: "ท่อง 'น้ำ-แสง-อากาศ-อาหาร' 4 อย่างเหมือนคนแต่พืชได้แสงเพิ่ม", en: "Chant 'water-light-air-nutrients'." },
+      tip: null,
+    },
+  ],
+  health: [
+    {
+      h: { th: "อวัยวะภายในและหน้าที่ (Internal organs)", en: "Internal organs" },
+      p: [
+        { th: "ร่างกายมีอวัยวะภายในที่ทำงานร่วมกัน แต่ละอวัยวะมีหน้าที่สำคัญ ต้องดูแลรักษา", en: "The body has internal organs that work together; each has an important job and needs care." },
+      ],
+      k: [
+        { th: "หัวใจ (heart): สูบฉีดเลือดไปเลี้ยงร่างกาย", en: "Heart: pumps blood around the body" },
+        { th: "ปอด (lungs): หายใจเอาออกซิเจนเข้า-คาร์บอนไดออกไซด์ออก", en: "Lungs: breathe in oxygen, out carbon dioxide" },
+        { th: "กระเพาะอาหาร + ลำไส้: ย่อยและดูดซึมอาหาร", en: "Stomach + intestines: digest and absorb food" },
+        { th: "ไต (kidneys): กรองของเสียออกเป็นปัสสาวะ | สมอง (brain): ควบคุมร่างกายและความคิด", en: "Kidneys: filter waste (urine) | Brain: controls body & thinking" },
+      ],
+      ex: [
+        [{ th: "อวัยวะที่สูบฉีดเลือดคือ", en: "Organ that pumps blood" }, "หัวใจ / heart"],
+        [{ th: "อวัยวะที่ใช้หายใจคือ", en: "Organ used for breathing" }, "ปอด / lungs"],
+      ],
+      mem: { th: "จับคู่ง่าย ๆ: หัวใจ-เลือด, ปอด-หายใจ, ไต-ของเสีย, สมอง-สั่งการ", en: "Pair them: heart-blood, lungs-breathe, kidneys-waste, brain-control." },
+      tip: { th: "ดูแลอวัยวะ: กินอาหารดี ออกกำลังกาย นอนพอ ไม่สูบบุหรี่", en: "Care for organs: eat well, exercise, sleep enough, avoid smoke." },
+    },
+  ],
+  thai: [
+    {
+      h: { th: "คำควบกล้ำ (ควบแท้ / ควบไม่แท้)", en: "Consonant clusters (true / false)" },
+      p: [
+        { th: "คำควบกล้ำคือคำที่มีพยัญชนะต้น 2 ตัวควบกับสระเดียวกัน มีทั้งควบแท้ (ออกเสียงทั้งคู่) และควบไม่แท้", en: "A cluster has two lead consonants blended with one vowel: true clusters sound both letters; false ones don't." },
+      ],
+      k: [
+        { th: "ควบแท้ ออกเสียงทั้ง 2 ตัว: กร ข ร คร ตร ปร พร กล คล ปล กว คว (เช่น ครู กลอง ขวา)", en: "True clusters sound both letters: e.g. ครู, กลอง, ขวา" },
+        { th: "ควบไม่แท้ ออกเสียงตัวเดียว: จริง (อ่าน จิง), สร้าง (ส่าง), เศร้า", en: "False clusters sound one letter: จริง→จิง, สร้าง→ส่าง" },
+        { th: "ทร มักออกเสียงเป็น ซ: ทราย (ซาย), ทรง (ซง)", en: "'ทร' often sounds like ซ: ทราย→ซาย" },
+      ],
+      ex: [
+        [{ th: "\"จริง\" อ่านว่า", en: "Read \"จริง\"" }, "จิง (ควบไม่แท้)"],
+        [{ th: "\"ทราย\" อ่านว่า", en: "Read \"ทราย\"" }, "ซาย"],
+        [{ th: "\"ครู\" เป็นคำควบชนิดใด", en: "\"ครู\" is which type?" }, "ควบแท้"],
+      ],
+      mem: { th: "จำคำควบไม่แท้ที่พบบ่อย: จริง สร้าง เศร้า ทราย ทรง ไซร้ (นอกนั้นมักควบแท้)", en: "Memorise common false clusters: จริง สร้าง เศร้า ทราย ทรง." },
+      tip: { th: "ควบไม่แท้ 'ร' มักหายไปตอนอ่าน (สร้าง=ส่าง) ส่วน 'ทร'=เสียง ซ", en: "In false clusters the 'ร' drops (สร้าง=ส่าง); 'ทร' = ซ sound." },
+    },
+    {
+      h: { th: "อักษรนำ & สระลดรูป-เปลี่ยนรูป", en: "Leading consonants & vowel changes" },
+      p: [
+        { th: "อักษรนำคือมีพยัญชนะ 2 ตัวแต่ 'ตัวหน้า' นำเสียงตัวหลัง | บางสระเปลี่ยนรูปหรือลดรูปเมื่อมีตัวสะกด", en: "A leading consonant makes the following letter follow its tone; some vowels change or drop their shape with a final consonant." },
+      ],
+      k: [
+        { th: "ห นำ: หมา หนู หญิง หลาย (ห ไม่ออกเสียง แต่ทำให้เสียงสูง)", en: "ห leads: หมา, หนู, หญิง (ห silent, raises the tone)" },
+        { th: "อ นำ ย 4 คำ: อย่า อยู่ อย่าง อยาก", en: "อ leads ย in 4 words: อย่า อยู่ อย่าง อยาก" },
+        { th: "อักษรสูง/กลางนำต่ำเดี่ยว: ขนม ถนน สนาม (ออกเสียงตามตัวนำ)", en: "High/mid leads a low: ขนม, ถนน, สนาม" },
+        { th: "สระเปลี่ยนรูป: เกะ→เก็บ (สระเอะ), แขะ→แข็ง | สระลดรูป: โต๊ะ→ต้น (โอะลดรูป)", en: "Vowels change/drop shape with a final consonant." },
+      ],
+      ex: [
+        [{ th: "\"หมา\" ตัวใดไม่ออกเสียง", en: "Which letter is silent in หมา?" }, "ห (อักษรนำ)"],
+        [{ th: "อ นำ ย มีกี่คำ", en: "How many 'อ leads ย' words?" }, "4 คำ (อย่า อยู่ อย่าง อยาก)"],
+      ],
+      mem: { th: "ท่อง 4 คำ อ นำ ย: 'อย่าอยู่อย่างที่อยาก'", en: "Chant the 4 words: อย่า-อยู่-อย่าง-อยาก." },
+      tip: { th: "ห นำ ทำให้คำออกเสียงสูงขึ้น แม้ ห จะไม่ออกเสียงเอง", en: "The leading ห raises the tone even though it's silent." },
+    },
+  ],
+  scith: [
+    {
+      h: { th: "การเจริญเติบโตของพืช (หลังสอบครั้งที่ 1)", en: "Plant growth (after mid-term)" },
+      p: [
+        { th: "พืชเริ่มจากเมล็ด งอกเป็นต้นอ่อน แล้วเติบโตเป็นต้นโตที่มีดอกและผล เป็นวัฏจักร", en: "Plants start from a seed, sprout into a seedling, then grow into a mature plant with flowers and fruit — a cycle." },
+      ],
+      k: [
+        { th: "วัฏจักรพืช: เมล็ด → ต้นอ่อน → ต้นโต → ออกดอก → ติดผล → เมล็ดใหม่", en: "Plant cycle: seed → seedling → mature plant → flower → fruit → new seed" },
+        { th: "เมล็ดงอกต้องการ น้ำ อากาศ และอุณหภูมิที่เหมาะสม", en: "Seeds need water, air, and the right warmth to sprout" },
+        { th: "พืชโตต้องการ น้ำ แสงแดด อากาศ ธาตุอาหารในดิน", en: "Growing plants need water, sunlight, air, soil nutrients" },
+      ],
+      ex: [
+        [{ th: "พืชเริ่มต้นชีวิตจาก", en: "A plant's life begins from" }, "เมล็ด / a seed"],
+        [{ th: "หลังต้นอ่อนคือระยะใด", en: "After the seedling stage comes…" }, "ต้นโต"],
+      ],
+      mem: { th: "ท่อง 'เมล็ด-ต้นอ่อน-ต้นโต-ดอก-ผล' เหมือนวัฏจักรสัตว์แต่เป็นพืช", en: "Chant 'seed-seedling-plant-flower-fruit'." },
+      tip: { th: "เทียบกับวัฏจักรสัตว์: ทั้งพืชและสัตว์ 'เกิด-โต-สืบพันธุ์-เกิดรุ่นใหม่' เหมือนกัน", en: "Like animals, plants also grow, reproduce, and make a new generation." },
+    },
+  ],
+  social: [
+    {
+      h: { th: "เศรษฐศาสตร์เบื้องต้น: สินค้า-บริการ", en: "Basic economics: goods & services" },
+      p: [
+        { th: "ในชีวิตประจำวันเราเกี่ยวข้องกับการซื้อขาย มีทั้งสินค้าและบริการ และควรรู้จักใช้จ่าย-ออม", en: "Daily life involves buying and selling — both goods and services — and knowing how to spend and save." },
+      ],
+      k: [
+        { th: "สินค้า = สิ่งของจับต้องได้ (ข้าว เสื้อผ้า ดินสอ) | บริการ = สิ่งที่คนทำให้ (ตัดผม รักษาโรค สอนหนังสือ)", en: "Goods = physical things | Services = things people do for us (haircut, teaching)" },
+        { th: "ผู้ผลิต = คนทำสินค้า/บริการ | ผู้บริโภค = คนซื้อไปใช้", en: "Producer = makes goods/services | Consumer = buys and uses them" },
+        { th: "รายรับ = เงินที่ได้ | รายจ่าย = เงินที่ใช้ | ออม = เก็บไว้ใช้ยามจำเป็น", en: "Income = money in | Expense = money out | Saving = keeping money for later" },
+      ],
+      ex: [
+        [{ th: "การตัดผมเป็นสินค้าหรือบริการ", en: "Is a haircut a good or a service?" }, "บริการ / service"],
+        [{ th: "คนที่ซื้อของไปใช้เรียกว่า", en: "A person who buys to use is a…" }, "ผู้บริโภค / consumer"],
+      ],
+      mem: { th: "จับต้องได้ = สินค้า, ทำให้เรา = บริการ", en: "Can touch it = good; done for you = service." },
+      tip: { th: "ควรออมก่อนใช้ และซื้อของที่ 'จำเป็น' ก่อนของที่ 'อยากได้'", en: "Save first; buy needs before wants." },
+    },
+    {
+      h: { th: "ภูมิศาสตร์: แผนที่ & ทิศ", en: "Geography: maps & directions" },
+      p: [
+        { th: "แผนที่ช่วยบอกตำแหน่งและเส้นทาง เราใช้ทิศและสัญลักษณ์ในการอ่านแผนที่", en: "Maps show places and routes; we use directions and symbols to read them." },
+      ],
+      k: [
+        { th: "ทิศหลัก 4 ทิศ: เหนือ ใต้ ตะวันออก ตะวันตก", en: "4 main directions: North, South, East, West" },
+        { th: "บนแผนที่ ทิศเหนืออยู่ 'ด้านบน' เสมอ", en: "On a map, North is always at the top" },
+        { th: "ดวงอาทิตย์ขึ้นทางทิศตะวันออก ตกทางทิศตะวันตก", en: "The sun rises in the East, sets in the West" },
+        { th: "แผนที่มีสัญลักษณ์ (บ้าน วัด ถนน แม่น้ำ) และมาตราส่วน", en: "Maps use symbols (house, temple, road, river) and a scale" },
+      ],
+      ex: [
+        [{ th: "ทิศที่ดวงอาทิตย์ขึ้น", en: "Direction the sun rises" }, "ตะวันออก / East"],
+        [{ th: "บนแผนที่ ด้านบนคือทิศ", en: "Top of a map is which direction?" }, "เหนือ / North"],
+      ],
+      mem: { th: "จำ 'ตะวันออก = อาทิตย์ออก' และแผนที่ 'บน=เหนือ'", en: "'East = sun exits (rises)'; map top = North." },
+      tip: null,
+    },
+  ],
+  history: [
+    {
+      h: { th: "หลักฐานทางประวัติศาสตร์ (ชั้นต้น/ชั้นรอง)", en: "Historical evidence (primary/secondary)" },
+      p: [
+        { th: "เรารู้เรื่องอดีตจากหลักฐาน ซึ่งแบ่งเป็นหลักฐานชั้นต้นและชั้นรอง", en: "We learn about the past from evidence, which is either primary or secondary." },
+      ],
+      k: [
+        { th: "หลักฐานชั้นต้น: ของจริงหรือคนที่อยู่ในเหตุการณ์ เช่น จารึก โบราณวัตถุ ภาพถ่ายเก่า คำบอกเล่าผู้เห็นเหตุการณ์", en: "Primary: real objects or eyewitnesses — inscriptions, artefacts, old photos, eyewitness accounts" },
+        { th: "หลักฐานชั้นรอง: สร้างขึ้นภายหลังจากหลักฐานชั้นต้น เช่น หนังสือเรียน สารคดี บทความ", en: "Secondary: made later from primary sources — textbooks, documentaries, articles" },
+      ],
+      ex: [
+        [{ th: "หนังสือเรียนเป็นหลักฐานชั้นใด", en: "A textbook is which type?" }, "ชั้นรอง / secondary"],
+        [{ th: "โบราณวัตถุเป็นหลักฐานชั้นใด", en: "An artefact is which type?" }, "ชั้นต้น / primary"],
+      ],
+      mem: { th: "อยู่ในเหตุการณ์จริง = ชั้นต้น, เล่าต่อภายหลัง = ชั้นรอง", en: "There at the event = primary; retold later = secondary." },
+      tip: { th: "ภาพถ่ายเก่า + คำบอกเล่าผู้เฒ่า = ชั้นต้น | หนังสือ + สารคดี = ชั้นรอง", en: "Old photos & elders' accounts = primary; books & documentaries = secondary." },
+    },
+  ],
+  arts: [
+    {
+      h: { th: "ศิลปะ: แม่สี & วรรณะสี", en: "Art: primary colours & colour temperature" },
+      p: [
+        { th: "สีมีระบบของมัน เริ่มจากแม่สี 3 สี ผสมกันได้สีใหม่ และแบ่งเป็นสีโทนอุ่น-เย็น", en: "Colours follow a system: 3 primary colours mix into new ones, and split into warm and cool tones." },
+      ],
+      k: [
+        { th: "แม่สี 3 สี: แดง เหลือง น้ำเงิน (ผสมกันเกิดสีอื่น)", en: "3 primary colours: red, yellow, blue" },
+        { th: "สีขั้นที่ 2: แดง+เหลือง=ส้ม, เหลือง+น้ำเงิน=เขียว, แดง+น้ำเงิน=ม่วง", en: "Secondary: red+yellow=orange, yellow+blue=green, red+blue=purple" },
+        { th: "วรรณะอุ่น: แดง ส้ม เหลือง | วรรณะเย็น: เขียว ฟ้า ม่วง", en: "Warm: red, orange, yellow | Cool: green, blue, purple" },
+      ],
+      ex: [
+        [{ th: "แดง + เหลือง = สี", en: "Red + yellow =" }, "ส้ม / orange"],
+        [{ th: "แม่สีมีกี่สี", en: "How many primary colours?" }, "3 สี"],
+      ],
+      mem: { th: "ท่องแม่สี 'แดง-เหลือง-น้ำเงิน' และผสมทีละคู่ได้ ส้ม-เขียว-ม่วง", en: "Chant 'red-yellow-blue'; mix pairs → orange-green-purple." },
+      tip: { th: "อุ่น = สีของไฟ/แดด (แดง ส้ม เหลือง) | เย็น = สีของน้ำ/ต้นไม้ (ฟ้า เขียว ม่วง)", en: "Warm = fire/sun colours; cool = water/plant colours." },
+    },
+    {
+      h: { th: "นาฏศิลป์: ภาษาท่า & การเคลื่อนไหว", en: "Dance: gesture language & movement" },
+      p: [
+        { th: "นาฏศิลป์ไทยใช้ 'ภาษาท่า' สื่อความหมายแทนคำพูด และเคลื่อนไหวตามจังหวะดนตรี", en: "Thai dance uses gestures ('gesture language') to express meaning, moving in time with music." },
+      ],
+      k: [
+        { th: "ภาษาท่า = ท่าทางที่สื่อความหมาย เช่น ท่าดีใจ เสียใจ ปฏิเสธ เรียก", en: "Gesture language = movements that mean something (joy, sadness, no, come)" },
+        { th: "เคลื่อนไหวตามจังหวะ: ช้า-เร็วตามเสียงดนตรี | มีท่ารำพื้นฐาน", en: "Move to the beat: slow/fast with the music; basic dance poses" },
+      ],
+      ex: [
+        [{ th: "การใช้ท่าทางแทนคำพูดเรียกว่า", en: "Using gestures instead of words is called…" }, "ภาษาท่า"],
+      ],
+      mem: { th: "ภาษาท่า = 'พูดด้วยมือและร่างกาย' แทนเสียง", en: "Gesture language = 'speaking with hands and body'." },
+      tip: null,
+    },
+  ],
+};
+
+/* merge Term-1 second-half lessons */
+Object.keys(LESSONS_T1B).forEach((id) => {
+  if (LESSONS[id]) LESSONS[id] = LESSONS[id].concat(LESSONS_T1B[id]);
+});
+
+/* ============ TERM 1 — SECOND HALF QUESTIONS (MORE3) ============ */
+const MORE3 = {
+  english: {
+    mcq: [
+      { q: "This is my mother's mother. She is my…", c: ["sister", "grandmother", "aunt", "baby"], a: 1, ex: { th: "แม่ของแม่ = ย่า/ยาย", en: "mother's mother = grandmother" } },
+      { q: "We see with our…", c: ["ears", "nose", "eyes", "hands"], a: 2, ex: { th: "มองด้วยตา = eyes", en: "we see with eyes" } },
+      { q: "We hear with our…", c: ["eyes", "ears", "mouth", "feet"], a: 1, ex: { th: "ฟังด้วยหู = ears", en: "we hear with ears" } },
+      { q: "Plural of 'foot' is…", c: ["foots", "feet", "feets", "foot"], a: 1, ex: { th: "foot → feet", en: "irregular plural" } },
+      { q: "A fish can…", c: ["fly", "swim", "read", "drive"], a: 1, ex: { th: "ปลาว่ายน้ำได้", en: "a fish can swim" } },
+      { q: "I ___ ride a bike. (ทำได้)", c: ["can", "can't", "am", "is"], a: 0, ex: { th: "can = ทำได้", en: "can = able" } },
+      { q: "She is ___. (กำลังวิ่ง)", c: ["run", "runs", "running", "ran"], a: 2, ex: { th: "is + running", en: "present continuous" } },
+      { q: "run + ing = ?", c: ["runing", "running", "runnning", "runeing"], a: 1, ex: { th: "ซ้ำ n: running", en: "double the n" } },
+      { q: "Which is an animal?", c: ["rabbit", "ruler", "pizza", "chair"], a: 0, ex: { th: "rabbit = กระต่าย", en: "rabbit is an animal" } },
+      { q: "They ___ playing football.", c: ["is", "am", "are", "be"], a: 2, ex: { th: "they + are", en: "they → are" } },
+      { q: "'baby' means…", c: [{ th: "พี่ชาย", en: "brother" }, { th: "ทารก", en: "infant" }, { th: "พ่อ", en: "father" }, { th: "ครู", en: "teacher" }], a: 1, ex: { th: "baby = ทารก", en: "baby = infant" } },
+      { q: "A bird can…", c: ["swim only", "fly", "read", "cook"], a: 1, ex: { th: "นกบินได้", en: "a bird can fly" } },
+    ],
+    fill: [
+      { q: "We smell with our n___.", a: ["nose"] },
+      { q: "พหูพจน์ของ tooth คือ", a: ["teeth"] },
+      { q: "I ___ swim very well. (ทำได้)", a: ["can"] },
+      { q: "He is ___ (กิน) lunch. (eat+ing)", a: ["eating"] },
+    ],
+  },
+  time: {
+    mcq: [
+      { q: "The day after Friday is…", c: ["Saturday", "Sunday", "Thursday", "Monday"], a: 0, ex: { th: "หลังศุกร์ = เสาร์", en: "after Friday = Saturday" } },
+      { q: "The first month of the year is…", c: ["June", "March", "January", "December"], a: 2, ex: { th: "เดือนแรก = January", en: "first month = January" } },
+      { q: "How many days are in a week?", c: ["5", "6", "7", "12"], a: 2, ex: { th: "1 สัปดาห์ = 7 วัน", en: "7 days a week" } },
+      { q: "How many months are in a year?", c: ["7", "10", "12", "24"], a: 2, ex: { th: "1 ปี = 12 เดือน", en: "12 months a year" } },
+      { q: "'first, second, ___'", c: ["three", "third", "thirdly", "tird"], a: 1, ex: { th: "ลำดับที่ 3 = third", en: "3rd = third" } },
+      { q: "The day before Monday is…", c: ["Tuesday", "Sunday", "Saturday", "Friday"], a: 1, ex: { th: "ก่อนจันทร์ = อาทิตย์", en: "before Monday = Sunday" } },
+      { q: "December is the ___ month.", c: ["first", "sixth", "tenth", "twelfth"], a: 3, ex: { th: "ธันวาคม = เดือนที่ 12", en: "December = 12th" } },
+    ],
+    fill: [
+      { q: "The day after Sunday is M____.", a: ["monday"] },
+      { q: "1 ปีมีกี่เดือน (ตัวเลข)", a: ["12", "สิบสอง"] },
+      { q: "ลำดับที่ 1 ภาษาอังกฤษคือ f____", a: ["first"] },
+    ],
+  },
+  math: {
+    mcq: [
+      { q: "6 × 7 = ?", c: ["42", "48", "36", "45"], a: 0, ex: { th: "แม่ 6: 6×7=42", en: "6×7=42" } },
+      { q: "8 × 9 = ?", c: ["64", "72", "81", "63"], a: 1, ex: { th: "8×9=72", en: "8×9=72" } },
+      { q: "123 × 3 = ?", c: ["369", "339", "366", "396"], a: 0, ex: { th: "คูณทีละหลัก", en: "multiply each digit" } },
+      { q: "27 × 4 = ?", c: ["108", "88", "98", "118"], a: 0, ex: { th: "7×4=28 ทด 2", en: "carry the 2" } },
+      { q: "56 ÷ 7 = ?", c: ["7", "8", "9", "6"], a: 1, ex: { th: "7×8=56", en: "7×8=56" } },
+      { q: "81 ÷ 9 = ?", c: ["8", "9", "7", "6"], a: 1, ex: { th: "9×9=81", en: "9×9=81" } },
+      { q: "ลูกอม 24 เม็ด แบ่ง 6 คน คนละกี่เม็ด", c: ["3", "4", "5", "6"], a: 1, ex: { th: "24÷6=4", en: "24÷6=4" } },
+      { q: "5, 10, 15, 20, __ (เพิ่มทีละ 5)", c: ["22", "25", "30", "24"], a: 1, ex: { th: "เพิ่มทีละ 5 → 25", en: "+5 → 25" } },
+      { q: "30, 27, 24, __ (ลดทีละ 3)", c: ["22", "21", "20", "23"], a: 1, ex: { th: "ลดทีละ 3 → 21", en: "−3 → 21" } },
+      { q: "9 × 0 = ?", c: ["9", "0", "1", "90"], a: 1, ex: { th: "อะไรคูณ 0 = 0", en: "×0 = 0" } },
+      { q: "12 × 1 = ?", c: ["1", "0", "12", "121"], a: 2, ex: { th: "คูณ 1 = ตัวเดิม", en: "×1 = itself" } },
+      { q: "45 ÷ 5 = ?", c: ["8", "9", "7", "6"], a: 1, ex: { th: "5×9=45", en: "5×9=45" } },
+    ],
+    fill: [
+      { q: "7 × 8 = ? (ตัวเลข)", a: ["56"] },
+      { q: "63 ÷ 9 = ? (ตัวเลข)", a: ["7"] },
+      { q: "2, 4, 6, 8, __ (ตัวเลข)", a: ["10", "สิบ"] },
+      { q: "100 ÷ 10 = ? (ตัวเลข)", a: ["10", "สิบ"] },
+    ],
+  },
+  science: {
+    mcq: [
+      { q: { th: "ส่วนของพืชที่ดูดน้ำจากดินคือ", en: "Which part absorbs water?" }, c: [{ th: "ใบ", en: "leaf" }, { th: "ราก", en: "root" }, { th: "ดอก", en: "flower" }, { th: "ผล", en: "fruit" }], a: 1, ex: { th: "รากดูดน้ำและแร่ธาตุ", en: "roots absorb water" } },
+      { q: { th: "ส่วนของพืชที่สร้างอาหารคือ", en: "Which part makes food?" }, c: [{ th: "ราก", en: "root" }, { th: "ลำต้น", en: "stem" }, { th: "ใบ", en: "leaf" }, { th: "เมล็ด", en: "seed" }], a: 2, ex: { th: "ใบสังเคราะห์แสง", en: "leaves photosynthesise" } },
+      { q: { th: "พืชสร้างอาหารต้องใช้อะไร", en: "Plants make food using…" }, c: [{ th: "แสงแดด", en: "sunlight" }, { th: "ความมืด", en: "darkness" }, { th: "เสียง", en: "sound" }, { th: "ดิน อย่างเดียว", en: "only soil" }], a: 0, ex: { th: "ใช้แสงแดดสร้างอาหาร", en: "uses sunlight" } },
+      { q: { th: "ส่วนที่ทำหน้าที่ค้ำจุนและลำเลียงคือ", en: "Part that supports & transports" }, c: [{ th: "ราก", en: "root" }, { th: "ลำต้น", en: "stem" }, { th: "ดอก", en: "flower" }, { th: "ใบ", en: "leaf" }], a: 1, ex: { th: "ลำต้นลำเลียงน้ำ-อาหาร", en: "the stem transports" } },
+      { q: { th: "ข้อใด 'ไม่ใช่' สิ่งที่พืชต้องการ", en: "Which do plants NOT need?" }, c: [{ th: "น้ำ", en: "water" }, { th: "แสงแดด", en: "sunlight" }, { th: "ความมืดตลอดเวลา", en: "constant darkness" }, { th: "อากาศ", en: "air" }], a: 2, ex: { th: "พืชต้องการแสง ไม่ใช่มืด", en: "plants need light" } },
+      { q: { th: "ส่วนที่ห่อหุ้มเมล็ดคือ", en: "Part that holds seeds" }, c: [{ th: "ผล", en: "fruit" }, { th: "ราก", en: "root" }, { th: "ใบ", en: "leaf" }, { th: "ลำต้น", en: "stem" }], a: 0, ex: { th: "ผลห่อหุ้มเมล็ด", en: "fruit protects seeds" } },
+    ],
+    fill: [
+      { q: { th: "ส่วนของพืชที่ดูดน้ำคือ", en: "Part that absorbs water" }, a: ["ราก", "root", "roots"] },
+      { q: { th: "ใบสร้างอาหารโดยใช้แสง...", en: "Leaves make food using sun____" }, a: ["แดด", "แสงแดด", "sunlight", "light"] },
+    ],
+  },
+  health: {
+    mcq: [
+      { q: { th: "อวัยวะที่สูบฉีดเลือดคือ", en: "Organ that pumps blood" }, c: [{ th: "ปอด", en: "lungs" }, { th: "หัวใจ", en: "heart" }, { th: "ตับ", en: "liver" }, { th: "ไต", en: "kidney" }], a: 1, ex: { th: "หัวใจสูบฉีดเลือด", en: "heart pumps blood" } },
+      { q: { th: "อวัยวะที่ใช้หายใจคือ", en: "Organ for breathing" }, c: [{ th: "หัวใจ", en: "heart" }, { th: "ปอด", en: "lungs" }, { th: "กระเพาะ", en: "stomach" }, { th: "สมอง", en: "brain" }], a: 1, ex: { th: "ปอดใช้หายใจ", en: "lungs breathe" } },
+      { q: { th: "อวัยวะที่ควบคุมร่างกายและความคิดคือ", en: "Organ that controls body & thought" }, c: [{ th: "สมอง", en: "brain" }, { th: "ไต", en: "kidney" }, { th: "ปอด", en: "lungs" }, { th: "หัวใจ", en: "heart" }], a: 0, ex: { th: "สมองสั่งการ", en: "brain controls" } },
+      { q: { th: "อวัยวะที่ย่อยอาหารคือ", en: "Organ that digests food" }, c: [{ th: "ปอด", en: "lungs" }, { th: "กระเพาะอาหาร", en: "stomach" }, { th: "หัวใจ", en: "heart" }, { th: "สมอง", en: "brain" }], a: 1, ex: { th: "กระเพาะย่อยอาหาร", en: "stomach digests" } },
+      { q: { th: "การดูแลอวัยวะที่ดีคือ", en: "Good way to care for organs" }, c: [{ th: "สูบบุหรี่", en: "smoking" }, { th: "กินดี ออกกำลังกาย นอนพอ", en: "eat well, exercise, sleep" }, { th: "อดอาหาร", en: "skip meals" }, { th: "นอนดึกทุกวัน", en: "stay up late" }], a: 1, ex: { th: "ดูแลด้วยสุขนิสัยที่ดี", en: "healthy habits" } },
+      { q: { th: "ไตทำหน้าที่", en: "The kidneys…" }, c: [{ th: "กรองของเสีย", en: "filter waste" }, { th: "หายใจ", en: "breathe" }, { th: "สูบเลือด", en: "pump blood" }, { th: "คิด", en: "think" }], a: 0, ex: { th: "ไตกรองของเสียเป็นปัสสาวะ", en: "kidneys filter waste" } },
+    ],
+    fill: [
+      { q: { th: "อวัยวะที่สูบฉีดเลือดคือ ห____", en: "Organ that pumps blood" }, a: ["หัวใจ", "heart"] },
+      { q: { th: "เราหายใจด้วย ป___", en: "We breathe with our l____" }, a: ["ปอด", "lungs"] },
+    ],
+  },
+  thai: {
+    mcq: [
+      { q: "\"จริง\" อ่านว่าอย่างไร", c: ["จะ-ริง", "จิง", "จริง (2 พยางค์)", "ซิง"], a: 1, ex: { th: "ควบไม่แท้ อ่าน จิง", en: "false cluster → จิง" } },
+      { q: "\"ทราย\" อ่านออกเสียงว่า", c: ["ทะ-ราย", "ซาย", "ทราย (ควบแท้)", "ตราย"], a: 1, ex: { th: "ทร ออกเสียง ซ", en: "ทร → ซ" } },
+      { q: "ข้อใดเป็นคำควบกล้ำแท้", c: ["จริง", "สร้าง", "กลอง", "ทราย"], a: 2, ex: { th: "กลอง ออกเสียงทั้ง กล", en: "กลอง sounds both" } },
+      { q: "\"หมา\" ตัวอักษรใดไม่ออกเสียง", c: ["ม", "า", "ห", "ไม่มี"], a: 2, ex: { th: "ห เป็นอักษรนำ ไม่ออกเสียง", en: "ห is silent leader" } },
+      { q: "ข้อใดเป็นคำ 'อ นำ ย'", c: ["อาย", "อยู่", "ยาย", "อ่าน"], a: 1, ex: { th: "อยู่ เป็น 1 ใน 4 คำ", en: "อยู่ is one of 4" } },
+      { q: "\"ขนม\" เป็นคำประเภทใด", c: ["คำควบกล้ำ", "อักษรนำ", "คำเป็น", "คำตาย"], a: 1, ex: { th: "ข นำ น = อักษรนำ", en: "leading consonant" } },
+      { q: "ข้อใดเป็นคำควบไม่แท้", c: ["ครู", "กลาง", "สร้าง", "ปลา"], a: 2, ex: { th: "สร้าง อ่าน ส่าง", en: "สร้าง → ส่าง" } },
+      { q: "คำว่า 'อย่า อยู่ อย่าง อยาก' มีกี่คำ", c: ["3", "4", "5", "6"], a: 1, ex: { th: "อ นำ ย มี 4 คำ", en: "4 words" } },
+    ],
+    fill: [
+      { q: "\"ทรง\" อ่านออกเสียงขึ้นต้นด้วยเสียง ซ หรือ ท (ตอบ ซ/ท)", a: ["ซ"] },
+      { q: "\"ครู\" เป็นคำควบแท้หรือไม่แท้ (ตอบ แท้/ไม่แท้)", a: ["แท้", "ควบแท้"] },
+      { q: "คำ อ นำ ย มีทั้งหมดกี่คำ (ตัวเลข)", a: ["4", "สี่"] },
+    ],
+  },
+  scith: {
+    mcq: [
+      { q: "พืชเริ่มต้นชีวิตจากอะไร", c: ["ดอก", "เมล็ด", "ผล", "ราก"], a: 1, ex: { th: "เมล็ด → ต้นอ่อน", en: "starts from a seed" } },
+      { q: "ต้นอ่อนของพืชจะเติบโตเป็น", c: ["เมล็ด", "ต้นโต", "ดักแด้", "ลูกอ๊อด"], a: 1, ex: { th: "ต้นอ่อน → ต้นโต", en: "seedling → plant" } },
+      { q: "เมล็ดงอกต้องการสิ่งใด", c: ["น้ำและอากาศ", "ความมืดเท่านั้น", "เสียงเพลง", "ไฟ"], a: 0, ex: { th: "น้ำ อากาศ อุณหภูมิเหมาะสม", en: "water & air" } },
+      { q: "ระยะหลังต้นโตที่ใช้สืบพันธุ์คือ", c: ["เมล็ด", "ออกดอก", "ราก", "ใบ"], a: 1, ex: { th: "ต้นโต → ออกดอก → ติดผล", en: "flower → fruit" } },
+      { q: "วัฏจักรพืชกับสัตว์เหมือนกันตรงที่", c: ["เกิด-โต-สืบพันธุ์", "บินได้", "ว่ายน้ำ", "กินเนื้อ"], a: 0, ex: { th: "ทั้งคู่มีวงจรชีวิต", en: "both have a life cycle" } },
+    ],
+    fill: [
+      { q: "พืชเริ่มต้นชีวิตจาก___", a: ["เมล็ด"] },
+      { q: "หลังออกดอกพืชจะติด___", a: ["ผล"] },
+    ],
+  },
+  social: {
+    mcq: [
+      { q: "การตัดผมจัดเป็น", c: ["สินค้า", "บริการ", "ผู้ผลิต", "รายรับ"], a: 1, ex: { th: "บริการ = สิ่งที่คนทำให้", en: "a service" } },
+      { q: "ข้าวสารจัดเป็น", c: ["สินค้า", "บริการ", "ผู้บริโภค", "การออม"], a: 0, ex: { th: "สินค้า = จับต้องได้", en: "a good" } },
+      { q: "คนที่ซื้อของไปใช้เรียกว่า", c: ["ผู้ผลิต", "ผู้บริโภค", "พ่อค้า", "ช่าง"], a: 1, ex: { th: "ผู้บริโภค", en: "consumer" } },
+      { q: "ทิศที่ดวงอาทิตย์ขึ้นคือ", c: ["เหนือ", "ใต้", "ตะวันออก", "ตะวันตก"], a: 2, ex: { th: "ขึ้นทางตะวันออก", en: "sun rises East" } },
+      { q: "บนแผนที่ ด้านบนคือทิศใด", c: ["เหนือ", "ใต้", "ตะวันออก", "ตะวันตก"], a: 0, ex: { th: "แผนที่ บน = เหนือ", en: "top = North" } },
+      { q: "การเก็บเงินไว้ใช้ยามจำเป็นเรียกว่า", c: ["รายจ่าย", "การออม", "การผลิต", "การซื้อ"], a: 1, ex: { th: "การออม", en: "saving" } },
+      { q: "ทิศหลักมีกี่ทิศ", c: ["2", "4", "6", "8"], a: 1, ex: { th: "เหนือ ใต้ ออก ตก", en: "4 main directions" } },
+      { q: "การสอนหนังสือจัดเป็น", c: ["สินค้า", "บริการ", "การออม", "รายจ่าย"], a: 1, ex: { th: "บริการ", en: "a service" } },
+    ],
+    fill: [
+      { q: "ดวงอาทิตย์ตกทางทิศ___", a: ["ตะวันตก", "ตก"] },
+      { q: "คนที่ผลิตสินค้าเรียกว่าผู้___", a: ["ผลิต", "ผู้ผลิต"] },
+      { q: "ทิศหลักมีกี่ทิศ (ตัวเลข)", a: ["4", "สี่"] },
+    ],
+  },
+  history: {
+    mcq: [
+      { q: "โบราณวัตถุเป็นหลักฐานชั้นใด", c: ["ชั้นต้น", "ชั้นรอง", "ไม่ใช่หลักฐาน", "ชั้นสาม"], a: 0, ex: { th: "ของจริง = ชั้นต้น", en: "artefact = primary" } },
+      { q: "หนังสือเรียนเป็นหลักฐานชั้นใด", c: ["ชั้นต้น", "ชั้นรอง", "ชั้นสูง", "ไม่ใช่"], a: 1, ex: { th: "เขียนภายหลัง = ชั้นรอง", en: "textbook = secondary" } },
+      { q: "คำบอกเล่าของผู้อยู่ในเหตุการณ์จริงเป็นหลักฐาน", c: ["ชั้นต้น", "ชั้นรอง", "เท็จ", "ชั้นสาม"], a: 0, ex: { th: "ผู้เห็นเหตุการณ์ = ชั้นต้น", en: "eyewitness = primary" } },
+      { q: "ข้อใดเป็นหลักฐานชั้นรอง", c: ["จารึกหิน", "สารคดีทีวี", "ภาพถ่ายเก่า", "โบราณวัตถุ"], a: 1, ex: { th: "สารคดีทำภายหลัง", en: "documentary made later" } },
+      { q: "เราศึกษาอดีตจากสิ่งใด", c: ["การเดา", "หลักฐาน", "ความฝัน", "การ์ตูน"], a: 1, ex: { th: "ใช้หลักฐานทางประวัติศาสตร์", en: "from evidence" } },
+    ],
+    fill: [
+      { q: "จารึกและโบราณวัตถุเป็นหลักฐานชั้น___", a: ["ต้น", "ชั้นต้น"] },
+      { q: "หนังสือเรียนเป็นหลักฐานชั้น___", a: ["รอง", "ชั้นรอง"] },
+    ],
+  },
+  arts: {
+    mcq: [
+      { q: "แม่สีมีกี่สี", c: ["2", "3", "5", "7"], a: 1, ex: { th: "แดง เหลือง น้ำเงิน", en: "3 primaries" } },
+      { q: "แดง + เหลือง = สีอะไร", c: ["เขียว", "ส้ม", "ม่วง", "น้ำตาล"], a: 1, ex: { th: "ได้สีส้ม", en: "orange" } },
+      { q: "เหลือง + น้ำเงิน = สีอะไร", c: ["ส้ม", "ม่วง", "เขียว", "ชมพู"], a: 2, ex: { th: "ได้สีเขียว", en: "green" } },
+      { q: "แดง + น้ำเงิน = สีอะไร", c: ["ม่วง", "ส้ม", "เขียว", "เทา"], a: 0, ex: { th: "ได้สีม่วง", en: "purple" } },
+      { q: "ข้อใดเป็นสีวรรณะอุ่น", c: ["ฟ้า", "เขียว", "แดง", "ม่วง"], a: 2, ex: { th: "อุ่น: แดง ส้ม เหลือง", en: "warm: red" } },
+      { q: "ข้อใดเป็นสีวรรณะเย็น", c: ["แดง", "ส้ม", "ฟ้า", "เหลือง"], a: 2, ex: { th: "เย็น: เขียว ฟ้า ม่วง", en: "cool: blue" } },
+      { q: "การใช้ท่าทางสื่อความหมายในนาฏศิลป์เรียกว่า", c: ["ภาษาท่า", "ภาษามือคนหูหนวก", "ภาษาเขียน", "ภาษาพูด"], a: 0, ex: { th: "ภาษาท่า", en: "gesture language" } },
+    ],
+    fill: [
+      { q: "แม่สีมีกี่สี (ตัวเลข)", a: ["3", "สาม"] },
+      { q: "เหลือง + น้ำเงิน ได้สี___", a: ["เขียว"] },
+      { q: "สีแดง ส้ม เหลือง จัดเป็นวรรณะ___ (อุ่น/เย็น)", a: ["อุ่น"] },
+    ],
+  },
+};
+
+/* merge Term-1 second-half questions */
+SUBJECTS.forEach((s) => {
+  const extra = MORE3[s.id];
   if (extra) {
     if (extra.mcq) s.mcq = s.mcq.concat(extra.mcq);
     if (extra.fill) s.fill = s.fill.concat(extra.fill);

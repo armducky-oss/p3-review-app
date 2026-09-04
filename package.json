@@ -1,6 +1,6 @@
 {
   "name": "p3-review-app",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "ติวสอบ ป.3 — P.3 Exam Prep (Capacitor Android app)",
   "scripts": {
